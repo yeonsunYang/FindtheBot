@@ -1,16 +1,16 @@
 /*
 ##########################################
 
-[ny]@ ANIMATION 구현에 해당하는 css
+[ny]@ ANIMATION Implement
 
-*깜빡임
-*로딩
+*blink
+*loading
 
 ##########################################
 */
 
 
-/* [ny]깜빡임 애니메이션 */
+/* [ny]blink animaion */
 .blinking {
   -webkit-animation: blink 0.35s ease-in-out infinite alternate;
   -moz-animation: blink 0.35s ease-in-out infinite alternate;
@@ -47,7 +47,7 @@
   }
 }
 
-/* [ny]로딩 애니메이션 */
+/* [ny]loading animaion */
 .dot-pulse {
   --uib-size: 40px;
   --uib-speed: 1.3s;
@@ -97,7 +97,7 @@
   }
 }
 
-/* [ny]타이핑 애니메이션 */
+/* [ny]typing animaion */
 
 .typewriter p {
   color: black;
@@ -167,15 +167,15 @@
   }
 }
 
-/* [ny]아이콘 움직이는 애니메이션 */
+/* [ny]Icon moving animaion */
 .icon {
   font-size: 5em;
   animation: motion 0.7s
-    /* [ny]속도 */
+    /* [ny]speed */
     linear 0s
-    /* [ny]처음부터 끝까지 일정 속도로 진행 */
+    /* [ny]proceed steady speed from start to end */
     infinite alternate;
-  /* [ny]무한 반복 */
+  /* [ny]unlimited repeat */
   animation-delay: 3s
 }
 
@@ -184,12 +184,12 @@
     margin-top: 0px;
   }
 
-  /* [ny]처음 위치 */
+  /* [ny]First location */
   100% {
     margin-top: 10px;
   }
 
-  /* [ny]마지막 위치 */
+  /* [ny]Last location */
 }
 
 /*progress bar animation*/
@@ -210,7 +210,7 @@
   width: 0;
 }
 
-/*[ny]코인 움직이는 애니메이션*/
+/*[ny]coin moving animaion*/
 #coin {
   animation: motion 0.6s linear 0s infinite alternate;
   margin-top: 0;
@@ -226,7 +226,7 @@
   }
 }
 
-/*[ny]text 깜빡임 효과*/
+/*[ny]text blink effect*/
 @keyframes blink-effect {
   50% {
     opacity: 0.7;
@@ -237,7 +237,7 @@
   animation: blink-effect 0.8s step-end infinite;
 }
 
-/*[ny] 채널 깜빡임 효과 */
+/*[ny] channel blink effect*/
 @keyframes channel-blink-effect {
   50% {
     opacity: 0.6;
@@ -248,7 +248,7 @@
   animation: channel-blink-effect 0.9s step-end infinite;
 }
 
-/*[ny] game caption 깜빡임 효과 */
+/*[ny] game caption blink effect */
 @keyframes caption-blink-effect {
   50% {
     opacity: 0.2;
@@ -259,7 +259,7 @@
   animation: caption-blink-effect 0.8s step-end infinite;
 }
 
-/*[ny]pass 문구 effect*/
+/*[ny]pass text effect*/
 
 .pass_span {
   display: inline-block;
@@ -289,7 +289,7 @@
   width: 10px;
 }
 
-/*[ny]glance 로딩 애니메이션*/
+/*[ny]glance loading animation*/
 
 .loading div{
 
@@ -322,7 +322,7 @@
   }
 }
 
-/*[ny]지목 당했을 때*/
+/*[ny]when pointed out*/
 @keyframes warning {
   0%{
     background-color: white;
@@ -339,7 +339,7 @@
 }
 
 
-/*[ny]정체 밝히기 애니메이션*/
+/*[ny]Inform identity animation*/
 @keyframes moving {
   0% {
       transform: translate(-80%, 0%);
@@ -369,7 +369,7 @@
   animation-fill-mode: forwards;
 }
 
-/*[ny]유령 죽음*/
+/*[ny]ghost died*/
 @keyframes go_up {
   0%{
       opacity:1;

@@ -26,7 +26,7 @@ f.close()
 
 emo_labels = ['0','1','2','3','4','5','6','7']
 
-#[ny]이미지 및 감정 저장할 Entires Table 자동 생성
+#[ny]Create Entires Table to store images and emotions automatically
 for idx in range(0,len(lines)):
     for emo_idx in range(0, len(emo_labels)):
         Entries.objects.create(image_id=lines[idx], emotion_id=emo_labels[emo_idx])

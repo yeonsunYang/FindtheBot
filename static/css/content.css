@@ -1,14 +1,14 @@
 /*
 ##########################################
-@ [ny]CONTENT component에 해당하는 css
-*프로필
+@ [ny]CONTENT component
+*profile
 *round_start page
 *labeling page
 *after_selection page
 ##########################################
 */
 
-/* [ny]lobby_page 관련 */
+/* [ny]lobby_page  */
 .profile {
     background-color: #dddddd;
     width: 135px;
@@ -42,7 +42,7 @@
 
 /**/
 
-/* [ny]round_start page 디자인 관련 */
+/* [ny]round_start page design */
 .round_emt {
     position: relative;
 }
@@ -182,7 +182,7 @@
 }
 
 .voted {
-    background-color: #EBC604; /*[ny]테마색 조정*/
+    background-color: #EBC604; /*[ny]Control theme color*/
 }
 
 .grayscale {
@@ -263,7 +263,7 @@
 }
 /**/
 
-/*[ny]game_caption 관련 class*/
+/*[ny]game_caption class*/
 .turn_caption_yellow{
     color: #EBC604;
 }
@@ -276,7 +276,7 @@
     color: rgb(7, 102, 7);
 }
 
-/*[ny]유령 이미지 배치*/
+/*[ny]Assign ghost img*/
 #rip_id{
     width: 90px;
     position: absolute;

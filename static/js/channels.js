@@ -1,6 +1,6 @@
 /*
 ####################################################################
-[ny]consumer와 웹소켓 통신을 위해 정의된 함수들을 모아둔 js 파일.
+[ny]A js file that gathers functions defined for consumer and websocket communication.
 *socket.onopen()
 *socket.onmessage()
 *socket.onclose()
@@ -9,39 +9,39 @@
 let socket = new WebSocket('ws://127.0.0.1:8000/ws/game/' + room_number+ '/' + username + '/' + teamid);
 
 
-/*[ny]웹소켓이 연결되면 호출되는 onopen 이벤트 함수*/
+/*[ny]Onopen event function called out when websocket connects*/
 socket.onopen = function (e) {
 
-    var data = {                        //[ny]consumer에 전달할 데이터들
+    var data = {                        //[ny]Datas that will be delivered to consumer
         'username': username,
         'command': 'connect',
         'emotions': emotion_order,
     }
-    socket.send(JSON.stringify({        //[ny]json포맷으로 데이터를 consumer에 전송.
+    socket.send(JSON.stringify({        //[ny]Transfer data to consumer in json format.
         data
     }));
 
 }
 
 
-/*[ny]consumer에서 메세지가 도착하면 호출되는 onmessage 이벤트 함수*/ 
+/*[ny]Onmessage event function called out when it gets msg from consumer*/ 
 socket.onmessage = function (e) {
-    const data = JSON.parse(e.data);    //[ny]수신받은 데이터를 json.parse
+    const data = JSON.parse(e.data);    //[ny]json.parse the gotten data
     console.log("%c[channels.js] socket.onmessage:",'color: green; font-size:15px;');
     console.log("%cCOMMAND: ",'color: blue;', data.payload.command);
     console.log("%cDATA: ",'color: blue;', data);
 
     
     if(data.payload.command == 'connect'){ 
-        profile_in(data.payload.username);                  //[ny]입장 유저의 프로필을 띄워준다.
-        emotion_order = data.payload.emotions;              //[ny]라운드 별 감정 순서
-        current_emotion = emotion_order[current_round-1];   //[ny]현재의 감정.
+        profile_in(data.payload.username);                  //[ny]show up the profile of entered user
+        emotion_order = data.payload.emotions;              //[ny]emotion order of each round
+        current_emotion = emotion_order[current_round-1];   //[ny]current emotion
     }
     else if(data.payload.command == 'disconnect'){ 
-        profile_out(data.payload.username);                 //[ny]퇴장 유저의 프로필을 삭제한다.
+        profile_out(data.payload.username);                 //[ny]Delete exited user's profile.
         console.log("*disconnect result: ", "(out user) ", data.payload.username);
         if(gamestart == true){
-            alert("[ny]다른 플레이어의 연결 상태가 불안정하여 강제 종료합니다.");
+            alert("[ny]Another player's connection status is unstable, forcing it to shut down.");
             window.location.href = '/game/channels/' + '?username=' + username;
         }
 
@@ -49,12 +49,12 @@ socket.onmessage = function (e) {
     else if(data.payload.command == 'userlist'){
 
         if(lobby_flag == false){
-            memlist = data.payload.userlist;    //[ny]유저리스트를 받아온다.
+            memlist = data.payload.userlist;    //[ny]Bring userlist
             survivors = [...memlist];
-            survivor_count = survivors.length;  //[ny]survivor 수 업데이트.
+            survivor_count = survivors.length;  //[ny]Update the number of survivors
             memlist[4] = '봇';
     
-            setTimeout(function(){              //[ny]2초 뒤 화면 전환 //[ny]버튼 비활성화 시켜주기
+            setTimeout(function(){              //[ny]Switch the screen in 2 seconds //[ny]Inactivate button
                 go_next_page('lobby','round_start');
                 round();
             }, 2500);
@@ -68,7 +68,7 @@ socket.onmessage = function (e) {
         var sur_plus_bot = [...survivors];
         sur_plus_bot.push('봇');
 
-        for(var i=0; i<survivor_count+1; i++){  //[ny]봇과 유저들이 할당받은 이미지들 초기화. 
+        for(var i=0; i<survivor_count+1; i++){  //[ny]Initialization of images allocated to the bot and users.
             src = ['','','',''];
             ids = ['','','',''];
             for(var j=0; j<4; j++){
@@ -86,7 +86,7 @@ socket.onmessage = function (e) {
         }
 
         bot_prediction = data.payload.bot_prediction;
-        init_bot_labels();      //[ny]봇의 레이블.
+        init_bot_labels();      //[ny]Lable of the bot.
 
         console.log("*round_init result: ", "(all_image_set) ",  all_image_set);
         console.log("*round_init result: ", "(bot_labeling_set) ",  all_labeling_set['봇']);
@@ -96,13 +96,13 @@ socket.onmessage = function (e) {
 
     }
     else if(data.payload.command == 'btn_ready'){
-        change_to_ready(data.payload.username);     //[ny]준비버튼을 누른 유저 프로필을 활성화한다.
+        change_to_ready(data.payload.username);     //[ny]Activate the profile of user who pressed ready button.
         console.log("*btn_ready result: ", "(ready user) ", data.payload.username);
 
 
     }
     else if(data.payload.command == 'btn_notready'){
-        change_to_notready(data.payload.username);  //[ny]준비취소버튼을 누른 유저 프로필을 비활성화한다.
+        change_to_notready(data.payload.username);  //[ny]Inactivate the profile of user who pressed notready button.
         console.log("*btn_notready result: ", "(notready user) ", data.payload.username);
 
 
@@ -113,7 +113,7 @@ socket.onmessage = function (e) {
 
     }
     else if(data.payload.command == 'selection'){
-        init_labels(data.payload.username, data.payload.labeling_set);  //[ny]누가 어떻게 레이블링 했는지 초기화한다.
+        init_labels(data.payload.username, data.payload.labeling_set);  //[ny]Initialize who and how they labeled.
         console.log("*selection result: ", "(I am) ", data.payload.username,"(My labeling) ", data.payload.labeling_set);
         console.log("*selection result: ", "(merged all_labeling_set) ", all_labeling_set);
 
@@ -129,8 +129,8 @@ socket.onmessage = function (e) {
         pointed_info['target_num'] = data.payload.target_num;
         pointed_info['pointed_img_idx'] = data.payload.pointed_img_idx;
         current_chosen = anonymous_user[pointed_info['target_num']];
-        console.log("*point result: ", "(pointed_info) [ny]지목자: ",pointed_info['selector']);
-        console.log(current_chosen, "[ny]의 ", pointed_info['pointed_img_idx'], " [ny]가 의심된다고 지목했습니다.");
+        console.log("*point result: ", "(pointed_info) [ny]Pointer: ",pointed_info['selector']);
+        console.log(current_chosen, "of [ny] ", pointed_info['pointed_img_idx'], " [ny] is pointed out as suspicions.");
         
         set_postposition(pointed_info['target_num']);
         elect(pointed_info['selector'], current_chosen);
@@ -156,13 +156,13 @@ socket.onmessage = function (e) {
 
         
         var elect_num = elect_result['thumb_up'] + elect_result['thumb_down'];
-        if (elect_num == survivor_count-1 && current_chosen == '봇') {      // [ny]봇이 지목 당했을 때
-            elect_result['thumb_down'] += 1;    // [ny]지목자의 투표.
+        if (elect_num == survivor_count-1 && current_chosen == '봇') {      // [ny]when bot is pointed out
+            elect_result['thumb_down'] += 1;    // [ny]vote of pointer.
             console.log("*elect_result: 봇이 지목당해서, ", "(살리자): ", elect_result['thumb_up'],"(죽이자): ",'color: blue;',elect_result['thumb_down']);
             show_elect_result(current_chosen);
         }
-        else if (elect_num == survivor_count-2 && current_chosen!='봇') {   // [ny]봇이 지목 안 당했을 때
-            elect_result['thumb_down'] += 2;    // [ny]지목자의 투표.
+        else if (elect_num == survivor_count-2 && current_chosen!='봇') {   // [ny]when bot isn't pointed out
+            elect_result['thumb_down'] += 2;    // [ny]vote of pointer.
             console.log("*elect_result: 사람이 지목당해서, ", "(살리자): ", elect_result['thumb_up'],"(죽이자): ",elect_result['thumb_down']);
             show_elect_result(current_chosen);
         }
@@ -182,11 +182,11 @@ socket.onmessage = function (e) {
             setTimeout(()=>{
                 no_mention(current_chosen);
             }, 3000);
-            console.log("*last_mention_result: ", "[ny](변론 무응답): 사망자는 ", current_chosen);
+            console.log("*last_mention_result: ", "[ny](No response of defense): The dead person is ", current_chosen);
             layout3('vacate');
         } else {
             last_mention(current_chosen, data.payload.last_mention_idx);
-            console.log("*last_mention_result: ", "[ny](변론 제출): 제출자는 ", current_chosen, ", [ny]제출 사진 idx는 ",data.payload.last_mention_idx);
+            console.log("*last_mention_result: ", "[ny](Submit defense): The submitter is ", current_chosen, ", [ny]The idx of submitted img is",data.payload.last_mention_idx);
             console.log("*last_mention_result: ", "(last_mention function call)");
 
         }
@@ -199,8 +199,8 @@ socket.onmessage = function (e) {
 }
     
 
-/*[ny]웹소켓이 끊어지면 호출되는 onclose 이벤트 함수*/ 
+/*[ny]onclose event function called out when websocket unconnected */ 
 socket.onclose = function (e) {
-    alert("[ny]연결이 끊겼습니다. 다시 시도해주세요.");
+    alert("[ny]Unconnected. Try again please");
     console.log(username, " 's websocket disconnect");
 }

@@ -15,8 +15,8 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-#[ny]DB 일괄삭제
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240 # [ny]원하는 숫자로 변경 가능
+#[ny]Delete DB in batches
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240 # [ny]possible to change any number you want
 FILE_UPLOAD_MAX_MEMORY_SIZE = 2621440 # 2.5 MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = FILE_UPLOAD_MAX_MEMORY_SIZE
 
@@ -36,8 +36,8 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'channels', #[ny]websocket 사용을 위함
-    'game',     #[ny]앱 등록
+    'channels', #[ny]To access websocket
+    'game',     #[ny]To Register the app
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -61,7 +61,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates' ], #[ny]templates directory 설정
+        'DIRS': [BASE_DIR / 'templates' ], #[ny]Set templates directory 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -112,7 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en'
  
-TIME_ZONE = 'Asia/Seoul' #[ny]서울시간
+TIME_ZONE = 'Asia/Seoul' #[ny]KST
 
 USE_I18N = True
 
@@ -125,7 +125,7 @@ USE_TZ = True
 STATIC_URL = 'static/' 
 
 STATICFILES_DIRS = [
-   BASE_DIR / 'static', #static directory
+   BASE_DIR / 'static', #Set static directory
 ]
 
 
@@ -138,7 +138,7 @@ ASGI_APPLICATION = "config.routing.application"
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer" #[ny]websocket 사용 위한 channel layers 설정
+        "BACKEND": "channels.layers.InMemoryChannelLayer" #[ny]Set channel layers to access websocket
     }
 }
 

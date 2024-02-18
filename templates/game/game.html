@@ -57,7 +57,7 @@
     </div>
     <!--End | lobby page-->
 
-    <!--round start page e.g. [ny]1라운드: 행복-->
+    <!--round start page e.g. [ny]Round 1: Happiness-->
     <div class="page" id="round_start">
         <div class="title" id="round_start_title"></div>
         <div class="top" id="round_start_top"></div>
@@ -81,7 +81,7 @@
     </div>
     <!--End | round start page-->
 
-    <!--labeling page e.g. [ny]'행복'이 포함된 사진을 모두 클릭하세요!-->
+    <!--labeling page e.g. [ny]Click on all the pictures that include "happiness."!-->
     <div class="page" id="labeling">
         <div class="title" id="labeling_title"></div>
         <div class="top" id="labeling_top"></div>
@@ -104,7 +104,7 @@
     </div>
     <!--End | labeling page-->
 
-    <!--waiting page e.g. [ny]다른 플레이어들이 선택을 완료할 때까지 조금만 기다려주세요.-->
+    <!--waiting page e.g. [ny]Please wait a little while for the other players to complete their choices.-->
     <div class="page" id="waiting">
         <div class="title" id="waiting_title"></div>
         <div class="top" id="waiting_top"></div>
@@ -159,7 +159,7 @@
     </div>
     <!--End | after selection-->
 
-    <!--glance e.g. [ny]익명 1은 사람일까요?-->
+    <!--glance e.g. [ny]Is Anonymous 1 a person?-->
     <div class="page" id="glance">
         <div class="title" id="glance_title" style="display: flex;"></div>
         <div class="top" id="glance_top"></div>
@@ -168,7 +168,7 @@
     </div>
     <!--End | glance-->
 
-    <!--find bot page e.g.[ny]익명의 누군가가 봇을 지목 중입니다.../투표해주세요/최후의 변론을 진행합니다/봇을 지목하세요-->
+    <!--find bot page e.g.[ny]An anonymous person is pointing to a bot.../Vote/Goint to last defense/Point out the bot-->
     <div class="page" id="find_bot">
         <div class="title" id="find_bot_title"></div>
         <div class="top" id="find_bot_top"></div>
@@ -198,9 +198,9 @@
 </body>
 <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
 <script>
-    var room_number = '{{ room_num }}';     //[ny]현 채널 번호
-    var username = '{{ username }}';        //[ny]유저 이름
-    var teamid = '{{ team_id }}';           //[ny]유저의 team id
+    var room_number = '{{ room_num }}';     //[ny]current channel number
+    var username = '{{ username }}';        //[ny]User na,e
+    var teamid = '{{ team_id }}';           //[ny]team id of user
 
     var user_money = '{{ user_money }}';
     var user_level = '{{ user_level }}';
@@ -210,16 +210,16 @@
 
 <script>
     if ('{{ players }}' == 'full') {
-        alert("[ny]채널이 꽉찼습니다. 다른 채널을 선택해주세요.");
+        alert("[ny]The channel is full. Please choose another channel.");
         window.location.href = '/game/channels/' + '?username=' + username;
     }
     if ('{{ players }}' == 'ping') {
-        alert("[ny]접속이 원활하지 않습니다. 인터넷 환경을 점검해주세요.");
+        alert("[ny]The connection is not stable. Please check the Internet environment.");
         window.location.href = '/game/channels/' + '?username=' + username;
     }
 
-    var players = JSON.parse("{{ players | escapejs }}");   //[ny]원래 채널에 있는 멤버들
-    var ready = JSON.parse("{{ ready | escapejs }}");       //[ny]채널에 있는 멤버들이 준비 상태인지 체크
+    var players = JSON.parse("{{ players | escapejs }}");   //[ny]The members who are on the channel
+    var ready = JSON.parse("{{ ready | escapejs }}");       //[ny]Check if the members in the channel are ready
 
     var profiles = [];
     var profiles_name = [];
@@ -261,7 +261,7 @@
     }
     top_five();
 
-    /*[ny]뒤로가기 컨트롤*/
+    /*[nyBackward Control*]/
     history.pushState(null, null, location.href);
     window.onpopstate = function(){
         history.go(-1);
@@ -273,7 +273,7 @@
 
 </script>
 
-<!--[ny]round.js는 한 라운드에서 사용할 js 모아둔 곳-->
+<!--[ny]round.js is the place where js are collected for use in a round-->
 <script>
     document.getElementById("lobby").style.display = "block";
     document.getElementById("round_start").style.display = "none";
@@ -285,7 +285,7 @@
 
 </script>
 
-<!--static/js/channels.js: websocket [ny]통신을 위한 코드-->
+<!--static/js/channels.js: websocket [ny]Code for communication-->
 <!-- <script type="text/javascript" src="/static/js/channels.js?ver=1"></script> -->
 <script type="text/javascript" src="/static/js/layout.js?ver=1"></script>
 <script type="text/javascript" src="/static/js/round.js?ver=1"></script>

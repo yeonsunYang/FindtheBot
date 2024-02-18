@@ -1,18 +1,18 @@
 /*
 ##########################################
 
-@ [ny]TITLE component에 해당하는 css
+@ [ny]TITLE component
 
-*현재 생존자 수, 봇 수
-*채널 배너
-*layout1 - 현재 감정 표시창
-*layout1 - 현재 라운드 표시창
+*number of Current survivors, number of bot
+*channel bananer
+*layout1 - window of current emotion
+*layout1 - window of current round
 
 ##########################################
 */
 
 
-/* [ny]표(bot, 인간표시) - layout1*/
+/* [ny]table(bot, human) - layout1*/
 .table{
     
     border-spacing: 10px;
@@ -32,7 +32,7 @@
 }
 /**/
 
-/*[ny]맨 처음 채널 나타나내는 배너  - layout1 */
+/*[ny] banner showing the channel at first - layout1 */
 #channel{
     margin: auto;
     margin-right: 100px;
@@ -57,7 +57,7 @@
 
 /**/
 
-/* [ny]감정 버튼 - layout1 */
+/* [ny]emotion button - layout1 */
 #emotion{
     background-color: #EBC604;
     border: 0px;
@@ -72,7 +72,7 @@
 }
 /**/
 
-/* [ny]라운드 버튼  - layout1*/
+/* [ny]round button  - layout1*/
 #round{
     background-color: black;
     border: 0px;

@@ -1,6 +1,6 @@
 /*
 ####################################################################
-[ny]front-end 및 layout component 조정을 담당하는 함수들을 모아둔 js 파일.
+[ny]A js file that gathers the functions responsible for front-end and layout component adjustments.
 
 *go_next_page()
 *check_ready()
@@ -20,13 +20,13 @@
 ####################################################################
 */ 
 
-/*[ds] go_next_page 함수 : 다음 페이지로 화면 전환시키는 함수 */
+/*[ds] go_next_page function : A function converts display to next page */
 function go_next_page(now_page, next_page) {
     document.getElementById(now_page).style.display = "none";
     document.getElementById(next_page).style.display = "block";
 }
 
-/*[ds] check_ready 함수 : 4명 모두가 준비 완료 상태라면 화면 전환하는 함수 */ 
+/*[ds] check_ready function : A function converts display if 4 players are all ready */ 
 function check_ready(){
     all_ready = true;
     for(var i=0; i<4; i++){
@@ -43,7 +43,7 @@ function check_ready(){
     }
 }
 
-/*[ds] check_wait 함수 : 4명 모두가 대기 완료라면 화면 전환하는 함수 */ 
+/*[ds] check_wait function : A function converts display if 4 players are all waiting */ 
 function check_wait(){
     all_wait = true;
     for(var i=0; i<4; i++){
@@ -55,14 +55,14 @@ function check_wait(){
     }
 
     if (all_wait == true){
-        setTimeout(function(){      //[ny]3.5초 뒤 화면 전환
+        setTimeout(function(){      //[ny]Switch display after 3.5s
             go_next_page('waiting','after_selection');
             round();
         }, 3500);
     }
 }
 
-/*[ds] change_to_ready 함수 : 준비버튼을 누른 someone의 프로필 활성화. */ 
+/*[ds] change_to_ready function : Activate someone's profile if he pressed ready button. */ 
 function change_to_ready(someone){ 
     for (var i=0; i<4; i++){
         if(someone != username){
@@ -73,10 +73,10 @@ function change_to_ready(someone){
         }
     }
 
-    check_ready();      //[ny]전원 준비 완료 했는지 체크.
+    check_ready();      //[ny]Check all is ready or not.
 }
 
-/*[ds] change_to_notready 함수 : 준비취소버튼을 누른 someone의 프로필 비활성화. */
+/*[ds] change_to_notready function : Inactivate someone's profile if he pressed notready button. */
 function change_to_notready(someone){ 
     for (var i=0; i<4; i++){
         if(someone != username){
@@ -88,7 +88,7 @@ function change_to_notready(someone){
     }
 }
 
-/*[ds] profile_in 함수 : 파라미터 someone의 프로필을 띄워주는 함수 */ 
+/*[ds] profile_in functin : Show up someone's profile */ 
 function profile_in(someone){ 
     var rank_color = ['black', 'red', 'orange','green', 'black', 'black'];
     for (var i=0; i<4; i++){
@@ -106,19 +106,19 @@ function profile_in(someone){
     }
 }
 
-/*[ds]profile_out 함수 : 파라미터 someone의 프로필을 제거하는 함수 */ 
+/*[ds]profile_out function : Eleminate someone's profile*/ 
 function profile_out(someone){
     for(var i=0; i<4; i++){
         if(profiles_name[i].innerText == someone){
             profiles_name[i].innerHTML = '&nbsp;';
             profiles_info[i].innerHTML = '&nbsp;';
-            profiles[i].style.backgroundColor = "#dddddd";  //[ny]someone이 퇴장할 때 프로필도 비활성화.
+            profiles[i].style.backgroundColor = "#dddddd";  //[ny]Inactivate the profile when someone exits.
             break;
         }
     }
 }
 
-/*[ds]입장 전부터 채널에 접속해있던 플레이어들의 프로필과 준비상태를 띄워주는 함수*/ 
+/*[ds]A function that displays the profile and readiness of the players who have been on the channel before entering*/ 
 function init_profile(){
     var rank_color = ['black', 'red', 'orange','green', 'black', 'black'];
     for (var i=0; i<players.length; i++){
@@ -131,28 +131,28 @@ function init_profile(){
             else{
                 profiles_info[i].innerHTML = '&nbsp;';
             }
-            if(ready[i] == true){                               //[ny]만약 이전에 접속한 플레이어가 준비 중이었다면,
-                profiles[i].style.backgroundColor = "#EBC604";  //[ny]프로필도 준비상태로 활성화.
+            if(ready[i] == true){                               //[ny]If the player previously accessed was preparing,
+                profiles[i].style.backgroundColor = "#EBC604";  //[ny]Profile is also activated in Ready state.
             }
         }
     }
 }
 
-/*[ds] init_wait 함수 : 이전부터 대기 중이었던 플레이어들의 프로필 전부 띄워주는 함수 */
+/*[ds] init_wait function : A function that displays the profile of the players who have been waiting on the channel before  */
 function init_wait(){
     for (var i=0; i<4; i++){
-        waits_name[i].innerText = memlist[i];   //[ny]memlist 순서대로 비활성화 프로필 초기화한다.
+        waits_name[i].innerText = memlist[i];   //[ny]Initialize the deactivation profile in the order of memlist.
     }
     for (var i=0; i<4; i++){
         for (var j=0; j<4; j++){
-            if(waits_name[i].innerText == wait_queue[j]){               //[ny]만약 wait_queue에 있는 플레이어가 비활성화 프로필의 플레이어 이름과 같다면,
+            if(waits_name[i].innerText == wait_queue[j]){               //[ny]If the player in wait_queue is the same as the player name in the inactive profile,
                 if(dropouts.includes(wait_queue[j])){
                     waits[i].style.backgroundColor = '#B6B3B3';
                     console.log("이 사람 죽어있어요  [ah]????없앨지 나중에 판단");
                     document.getElementById("tombstone_"+(i+1)).src = '/static/images/profile_grave.png';
                 }
                 else{
-                    waits[i].style.backgroundColor = "rgb(235, 198, 4)"; //[ny]프로필 활성화 (불켜주기)
+                    waits[i].style.backgroundColor = "rgb(235, 198, 4)"; //[ny]Activate profile (Turn on the lights)
                 }
                 break;
             }
@@ -160,27 +160,27 @@ function init_wait(){
     }
 }
 
-/*[ds] profile_wait 함수 : 레이블링 끝내고 대기하는 플레이어 someone을 대기 프로필에 추가로 띄워주는 함수 */
+/*[ds] profile_wait function : A function that displays additional player someone waiting after labeling in the waiting profile*/
 function profile_wait(someone){
-    wait_queue.push(someone);                   //[ny]wait_queue에 파라미터 someone을 추가한다.
+    wait_queue.push(someone);                   //[ny]Add someone parameter in wait_queue.
     for (var i=0; i<4; i++){
-        if(waits_name[i].innerText == someone){             //[ny]비활성화 대기 프로필의 플레이어와 someone이 같은 사람이라면,
+        if(waits_name[i].innerText == someone){             //[ny]If someone and the player in the inactive standby profile are the same person,
             if(dropouts.includes(someone)){
                 console.log("이 사람 죽어있어요");
                 waits[i].style.backgroundColor = '#B6B3B3';
                 document.getElementById("tombstone_"+(i+1)).src = '/static/images/profile_grave.png';
             }
             else{
-                waits[i].style.backgroundColor = "#EBC604"; //[ny]프로필 활성화 (불켜주기)
+                waits[i].style.backgroundColor = "#EBC604"; //[ny]Activate profile (Turn on the lights)
             }
             break;
         }
     }
 
-    check_wait(); // [ny]전원 레이블링 완료했는지 체크한다.
+    check_wait(); // [ny]Check all is ready or not
 }
 
-/*[ds] timer_start 함수 : top에 타이머 추가 */
+/*[ds] timer_start function : Add timer to top section */
 function timer_start(time) {
     document.getElementById('labeling_top').innerHTML = '<div id="timers"><img src="/static/images/stopwatch.png" width="28px" height="28px">&emsp;<div id="Bar"><div id="timeBar"></div></div></div><div id="digit"></div></div>';
     var digit = document.getElementById("digit");
@@ -213,7 +213,7 @@ function timer_start(time) {
     }
 }
 
-/*[ds] timer_start2 함수 : find_bot 페이지의 타이머, 나중에 timer_start랑 parameter 조정해서 합치기*/
+/*[ds] timer_start2 function : Sum the timer in find_bot page and timer_start in later with controlling the parameter*/
 function timer_start2(position, time) {
     document.getElementById(position).innerHTML = '<div id="timers2"><img src="/static/images/stopwatch.png" width="22px" height="22px">&emsp;<div id="Bar2"><div id="timeBar2"></div></div></div>';
     var timebar = document.getElementById("timeBar2");
@@ -234,7 +234,7 @@ function timer_start2(position, time) {
     }
 }
 
-/*[ds] 알림 함수 : 알림란에 메세지 띄움 */
+/*[ds] Alret function : show up the msg on alret banner */
 function notice(message, page_name, font_size) {
     var notice_area = document.getElementById(page_name+"_top");
     var img_src = '/static/images/alert.png';
@@ -242,12 +242,12 @@ function notice(message, page_name, font_size) {
         img_src = '/static/images/magnifying_glass.png';
     }
 
-    if(message == 'Pointing out'){ // [ny] 지목하는 단계라면,
+    if(message == 'Pointing out'){ // [ny] If this is pointing out step,
         var add_msg = "▶pass : <b style='color:#2E64FE'>"+pass_count + "</b> / " + survivor_count;
         notice_area.innerHTML = "<div class='notice'>\
         <img id='alert' src= "+ img_src + ">\
         <div id='"+ page_name +"_box' class='notice_back shadow'>\<span style='font-size:" +font_size + "' class='channel_blink'>\
-        "+ message +"</span><span style='font-size:11px; color: grey;'>&nbsp;&nbsp;&nbsp;"+add_msg +"</span></div></div>"; //[ny] 몇 명 중 몇 명 지목인지. e.g. 1/4 
+        "+ message +"</span><span style='font-size:11px; color: grey;'>&nbsp;&nbsp;&nbsp;"+add_msg +"</span></div></div>"; //[ny]How many people is pointed out  . e.g. 1/4 
     }
     else if(message == 'Browse!'){
         var add_msg = "▶pass : <b style='color:#2E64FE'>"+pass_count + "</b> / " + survivor_count;
@@ -277,7 +277,7 @@ function notice(message, page_name, font_size) {
 
 }
 
-/*[ds] layout1 함수 : title component 조정함. */
+/*[ds] layout1 function : control title component. */
 function layout1(param, page_name) {
     switch (param) {
         case 'round_title':
@@ -299,7 +299,7 @@ function layout1(param, page_name) {
             let people_numbers = document.createElement('th');
             people_numbers.innerHTML = survivor_count;
             let bot_number = document.createElement('th');
-            bot_number.innerHTML = "1"; // [ny]bot은 항상 1(0이면 게임 종료)
+            bot_number.innerHTML = "1"; // [ny]bot is always 1(game over when it is 0)
 
             row_1.appendChild(people_numbers);
             row_1.appendChild(bot_number);
@@ -325,7 +325,7 @@ function layout1(param, page_name) {
     }
 }
 
-/* [ds]layout2 함수 : top component 조정함. */
+/* [ds]layout2 function : top component control. */
 function layout2(param) { 
     switch(param) {
         case 'click_ready':
@@ -352,7 +352,7 @@ function change_fontsize(param){
 
 }
 
-/*[ds]layout3 함수 : content 하단에서 instruction 주는 레이아웃.*/
+/*[ds]layout3 function : layout giving the instruction from bottom of content .*/
 function layout3(mode){
     var caption = document.getElementById('game_caption');
 
@@ -366,13 +366,13 @@ function layout3(mode){
         case 'pointed':
             var cur_chosen = anonymous_user[pointed_info['target_num']];
             var cur_selector = pointed_info['selector'];
-            if(cur_chosen == username){         // [ny]내가 지목당했을 경우
+            if(cur_chosen == username){         // [ny]If I am pointed out as a bot
                 caption.innerHTML = 'Someone has pointed you out as a bot.';
             }
-            else if(cur_selector == username){  // [ny]내가 지목자일 경우
+            else if(cur_selector == username){  // [ny]If I am a pointer
                 caption.innerHTML = 'You have pointed out anony'+ pointed_info['target_num']+' as a bot.';
             }
-            else{                               // [ny]내가 관전자 or 지목당하지 않았을 경우
+            else{                               // [ny]If I am an observer or the person who isn't pointed out
                 caption.innerHTML ='Someone has pointed out anony '+pointed_info['target_num']+' as a bot.';
             }
             break;
@@ -386,7 +386,7 @@ function layout3(mode){
             if(cur_chosen == username){
                 caption.innerHTML = 'Voting on you is underway..';
             }
-            else{                               // [ny]내가 지목자거나 관전자일 경우
+            else{                               // [ny]If I'm a pointer or an observer
                 caption.innerHTML ='Voting on anony ' + pointed_info['target_num']+' is underway..';
             }
             break;
@@ -425,7 +425,7 @@ function layout3(mode){
             }
             break;
         case 'history':
-            caption.innerHTML = "[ny]표정 전문가는 이 이미지를 기쁨이라고 생각합니다.";
+            caption.innerHTML = "[ny]Facial expression experts consider this image a joy.";
             break;
         case 'last_mention_success':
             var current_chosen = anonymous_user[pointed_info['target_num']];
@@ -449,7 +449,7 @@ function layout3(mode){
             caption.innerHTML = "<b style='color:#2E64FE;'>The other players in Find the Bot! </b>have interpreted<br>the evidence in the following way.";
             break;
         case 'history_expert':
-            caption.innerHTML = "<b style='color:#2E64FE;'>[ny]표정 전문가 1인</b>은 방금 지목당한 표정을 이렇게 해석했습니다.";
+            caption.innerHTML = "<b style='color:#2E64FE;'>[ny]A Facial expression expert is</b> interpreted the expression you just got pointed at.";
             break;
     }
 }

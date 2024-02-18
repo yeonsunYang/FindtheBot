@@ -1,14 +1,14 @@
 /*
 ##########################################
 
-@[ny] BOTTOM component에 해당하는 css
+@[ny] BOTTOM component
 
-*버튼
+*button
 
 ##########################################
 */
 
-/* [ny]버튼 */
+/* [ny]button */
 .btn {
     font-family: 'DungGeunMo';
     font-size: 20px;

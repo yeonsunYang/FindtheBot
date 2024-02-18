@@ -1,15 +1,15 @@
 /*
 ##########################################
 
-@ [ny]TOP component에 해당하는 css
+@ [ny]TOP component
 
-*알림판
-*타이머
+*alert banner
+*timer
 
 ##########################################
 */
 
-/* [ny]알림판 */
+/* [ny]alret banner */
 #alert {
     width: 35px;
     align-self: center;
@@ -50,7 +50,7 @@
 
 /**/
 
-/*[ny]타이머*/
+/*[ny]timer*/
 #timers {
     margin: auto;
     margin-top: 10px;

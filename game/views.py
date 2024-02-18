@@ -1,7 +1,7 @@
 """
 views config.
 
-[ny]렌더링할 url로 함께 넘겨줄 데이터 정의
+[ny]Define the data will be handed over to url will do rendering
 
 """
 from django.shortcuts import render,redirect
@@ -11,41 +11,41 @@ import json
 
 def index(request):
     """
-    [ds]index 함수.
+    [ds]index Fuction.
 
-    game/index.html 로그인 창을 렌더링. 
+    Rendering the login window on game/index.html. 
     """
     context = {}
     return render(request, 'game/index.html', context)
 
 def info(request):
     """
-    [ds]info 함수.
+    [ds]info function.
 
-    로그인 정보를 받아서 game/info.html로 username과 point 전달 및 렌더링.
+    Receive login information and deliver and render username and point to game/info.html.
     """
     username = request.GET.get('username')
 
     try:
         member_info = Member.objects.get(mem_name = username)
     except:
-        messages.warning(request, "[ny]존재하지 않는 닉네임입니다.")
+        messages.warning(request, "[ny]This nickname doesnt exist in")
         return redirect('index')
     else:
         user_point = member_info.mem_point
         user_exp = member_info.mem_exp
         user_level = member_info.mem_level
 
-        members = list(Member.objects.all().order_by('-mem_point', '-mem_level', '-mem_exp')) # [ny]점수 순 정렬 후 전달
+        members = list(Member.objects.all().order_by('-mem_point', '-mem_level', '-mem_exp')) # [ny]Sort and deliver scores
         context = {'username' : username, 'user_point' : user_point, 'user_exp': user_exp, 'user_level':user_level, 'ranking': members}
         return render(request, 'game/info.html', context)
 
 
 def channels(request):
     """
-    [ds]channels 함수.
+    [ds]channels function.
 
-    game/info.html에서 채널입장 버튼 클릭하면 username을 game/channels.html로 전달 및 렌더링.
+    Transfer and render username to game/channels.html by clicking the enter channel button in game/info.html.
     """
     username = request.GET.get('username')
     context = {'username' : username}
@@ -54,9 +54,9 @@ def channels(request):
 
 def room(request, room_num):
     """
-    [ds]room 함수.
+    [ds]room Fuction.
 
-    game/channels.html에서 채널 선택 시 입장 및 웹소켓 연결을 위한 데이터 전달 및 렌더링.
+    Data transfer and rendering for entry and websocket connections upon channel selection in game/channels.html.
     """
 
     username = request.GET.get('username')
@@ -76,19 +76,19 @@ def room(request, room_num):
         channel_obj = Channel_4.objects
     
 
-    if channel_obj.all().count() >= 4 : #[ny]현재 채널 내 접속 중인 플레이어 수가 4명 이상이면,
+    if channel_obj.all().count() >= 4 : #[ny]If there are more than four players currently connected in the channel,
         players = 'full'
         context = { 'room_num': room_num, 'username': username, 'players': players}
         return render(request, 'game/game.html', context)
 
-    else :                              #[ny]현재 채널 내 접속 중인 플레이어 수가 4명 미만이라면, 
-        players = list(channel_obj.values_list('user', flat=True))  #[ny]channel table에 등록된 user values_list
-        json_players = json.dumps(players, ensure_ascii=False)      #[ny]json 포맷으로 변경
+    else :                              #[ny]If there are more less four players currently connected in the channel, 
+        players = list(channel_obj.values_list('user', flat=True))  #[ny]user values_list registered on channel table
+        json_players = json.dumps(players, ensure_ascii=False)      #[ny]change as json format
         
-        flag_ready = list(channel_obj.values_list('ready', flat=True)) #[ny]channel table에 등록된 ready values_list(준비중인지, 아닌지)
-        json_ready = json.dumps(flag_ready) #json 포맷으로 변경
+        flag_ready = list(channel_obj.values_list('ready', flat=True)) #[ny] ready values_list registered on channel table(If it is ready or not)
+        json_ready = json.dumps(flag_ready) #change as json format
 
-        members = list(Member.objects.all().order_by('-mem_point', '-mem_level', '-mem_exp')) # [ny]점수 순 정렬 후 전달
+        members = list(Member.objects.all().order_by('-mem_point', '-mem_level', '-mem_exp')) # [ny]Sort and deliver scores
 
         
         context = {'room_num': room_num, 'username': username, 'players': json_players, 'ready': json_ready, 'user_money': user_money, 'user_exp': user_exp, 'user_level': user_level, 'ranking': members, 'team_id' : team_id}
@@ -96,12 +96,12 @@ def room(request, room_num):
 
 def ending(request):
     """
-    [ds]ending 함수. 
+    [ds]ending Fuction. 
     
-    game/ending.html 에 데이터 전달 및 렌더링.
+    Deliver data to game/ending.html and rendering .
     """
 
-    '''[ny]보내줘야 할 데이터
+    '''[ny]Data to be handled out 
     # username
     # point
     # game result (win / lose)
@@ -120,7 +120,7 @@ def ending(request):
 
     if result=='win':
         user_point += get_money
-        member_info.mem_point = user_point #[ny]점수 업데이트
+        member_info.mem_point = user_point #[ny]Update scores
     
     temp = (user_exp + get_exp)
     if temp >= 2000:

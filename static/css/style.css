@@ -1,11 +1,11 @@
 /*
 ##########################################
-@ [ny]MAIN FRAME에 해당하는 css
+@ [ny]MAIN FRAME
 ##########################################
 */
 
 
-/* [ny]글씨체 */
+/* [ny]Text style */
 @font-face {
     font-family: 'Ycomputer-Regular';
     src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_11-01@1.0/Ycomputer-Regular.woff2') format('woff2');
@@ -25,7 +25,7 @@
   }
 /**/
 
-/* [ny]기본 틀 */
+/* [ny]basic Frame */
 .page {
     width: 360px;
     height: 568px;

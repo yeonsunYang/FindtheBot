@@ -1,6 +1,6 @@
 /*
 ####################################################################
-[ny]게임 매 라운드 진행을 담당하는 함수들을 모아둔 js 파일.
+[ny]A js file with the functions responsible for progressing each round of the game.
 
 *round_init()
 *init ()
@@ -20,38 +20,38 @@
 */
 
 document.addEventListener("DOMContentLoaded", function () {
-    console.log("[ny]로드됨")
+    console.log("[ny]loaded")
 });
 
-var memlist = [];               // [ny]게임 시작시 최종적으로 채널에 존재하는 4명의 멤버들
-var survivors = [];             // [ny]현재 생존 플레이어들을 저장할 변수
-var select_order = [];          // [ny]플레이어들이 어떤 순서로 봇 지목 순서 가질지 랜덤화한 후 order 저장할 변수
-var all_image_set = {};         // [ny]전체 플레이어들이 할당받은 image set 저장할 변수
+var memlist = [];               // [ny]4 players existed in the game when it starts.
+var survivors = [];             // [ny]A variable stored current survival players.
+var select_order = [];          // [ny]A variable stored random order of bot nomination.
+var all_image_set = {};         // [ny]A variable stored img set allocated to all players.
 var all_imageid_set = {};
-var all_labeling_set = {};      // [ny]전체 플레이어들이 초기에 선택한 labeling set 저장할 변수
-var my_labeling = [0,0,0,0];    // [ny]나의 레이블링
-var my_images = [];             // [ny]나의 이미지 @@요거 초기화 어디서 할까
-var survivor_count = 0;         // [ny]생존 플레이서 수
-var wait_queue = [];            // [ny]레이블링 완료 후 대기 중인 플레이어들을 저장할 변수
+var all_labeling_set = {};      // [ny]A variable stored labeling set picked by all players at first time.
+var my_labeling = [0,0,0,0];    // [ny]My labeling
+var my_images = [];             // [ny]My img
+var survivor_count = 0;         // [ny]the number of survivors
+var wait_queue = [];            // [ny]A variable stored waiting players after lableing
 
-var anonymous_user = {};        // [ny]익명 유저 순서, dict
+var anonymous_user = {};        // [ny]Anonymous users order 
 
-var current_round = 1;          // [ny]현재 라운드 번호
-var current_selector = '';      // [ny]현재 고르는 사람(find_bot에서 사용)
-var current_selector_idx = 0;   // [ny]현재 고르는 사람의 select_order에서의 index
-var current_chosen = '';        // [ny]현재 지목당한 사람
+var current_round = 1;          // [ny]current round number
+var current_selector = '';      // [ny]current picking person(used at find_bot)
+var current_selector_idx = 0;   // [ny]the index of current picking person at select_order.
+var current_chosen = '';        // [ny]current picked person
 
 var current_emotion = 'what is the target emotion in this round?';
-var emotion_order = [];         // [ny]각 라운드 별 감정 순서
+var emotion_order = [];         // [ny]Emotion order of each round
 var emotion_name = { "0": "Neutral", "1": "Happy", "2": "Sad", "3": "Surprise", "4": "Fear", "5": "Disgust", "6": "Anger", "7": "Contempt" };
 var emoji_src = { "0": "neutral.png", "1": "happy.png", "2": "sad.png", "3": "surprise.png", "4": "fear.png", "5": "disgust.png", "6": "angry.png", "7": "contempt.png" };//이모지 로고
 var emotion_instruction = {"0": "Showing no emotion or mood", "1": "feelings of joy, contentment, or excitement","2": "feelings of sorrow, unhappiness or distress","3": "a sudden emotional state to an unexpected event",
 "4": "an emotional state to a perceived threat or danger","5": "an emotional state of revulsion or strong disapproval","6": "an emotional state of displeasure or hostility","7": "feelings of disdain or lack of respect for someone"};
-var bot_prediction = [];        // [ny]봇의 예측값 담을 리스트
-var priorities = {};            // [ny]봇이 최후의 변론 시 제출할 이미지 순서
+var bot_prediction = [];        // [ny]list with prediction of bot
+var priorities = {};            // [ny]img order that bot will submit when last defense
 
-var bot_death = false;          // [ny]봇 사망여부 판별하는 전역변수
-var money_table = [16, 8, 4, 2];// [ny]라운드 별 획득 money
+var bot_death = false;          // [ny]Global Variables to Determine bot Death
+var money_table = [16, 8, 4, 2];// [ny]acquired money of each round
 var pass_flag = {};
 
 var pointed_info = {
@@ -64,12 +64,12 @@ var lobby_flag = false;
 var gamestart = false;
 var hint = [];
 
-/*[ds] round_init 함수 : 각round 진행에 필요한 모든 변수 초기화, 랜덤화 */
+/*[ds] round_init function : Initialize and Randomize all variables needed to progress each round */
 function round_init() {
     /*
-    -레벨에 맞춰 모두에게 랜덤으로 이미지 할당
-    -그에 따른 봇의 예측
-    -flag_pointed 초기화
+    -Allocate img to all randomly up to their level
+    -predict by bot with it
+    -Intialize flag_pointed
     */
 
     if (memlist[0] == username) {
@@ -84,31 +84,31 @@ function round_init() {
         }));
     }
 
-    for(var i=0; i<survivors.length; i++){  // [ny]pass_flag 초기화. 
+    for(var i=0; i<survivors.length; i++){  // [ny]Reset pass_flag. 
         pass_flag[survivors[i]] = 'false';
     }
 
 }
 
-/* [ds]init 함수 : 게임 시작 전 필요한 정보 초기화 - 4라운드에 해당하는 감정들 셔플*/
+/* [ds]init function :  Initialize the information needed before the game starts - Shuffle feelings corresponding to round 4*/
 function init(){
     let emotions = range(0,8);
     shuffle(emotions);
     emotion_order = emotions.slice(0,4);
 }
 
-/*[ds] sync_userlist 함수 : 소켓에게 userlist를 db에서 비동기적으로 가져오도록 요청. */
+/*[ds] sync_userlist function : Ask socket to bring userlist from db asynchronously. */
 function sync_userlist() {
-    var data = {                //[ny]consumer에 전달할 데이터들
+    var data = {                //[ny]Data that will be delivered to consumer
         'username': username,
         'command': 'userlist'
     }
-    socket.send(JSON.stringify({//[ny]json포맷으로 데이터를 consumer에 전송.
+    socket.send(JSON.stringify({//[ny]Send data in json format to consumer.
         data
     }));
 }
 
-/*[ds] sync_selection 함수 : 소켓에게 {누가(username), 어떤 레이블링(labeling_set)} 했는지 알림. */
+/*[ds] sync_selection function : Inform {who(username), what labeling(labeling_set)} to socket. */
 function sync_selection() {
     var data = {
         'username': username,
@@ -120,8 +120,7 @@ function sync_selection() {
     }));
 }
 
-/* [ds]init_labels 함수 : 소켓으로부터 전달받은 {username, labeling_set} 정보를 전역변수에 넣어서 
-모든 유저들이 어떤 레이블링을 했는지 초기화한다. */
+/* [ds]init_labels function :  {username, labeling_set} information received from the socket is put into the global variable and initialize what labeling all users have performed.*/
 function init_labels(someone, labeling_set){
     for(var i=0; i<4; i++){
         if(survivors[i] == someone){        // survivor
@@ -131,7 +130,7 @@ function init_labels(someone, labeling_set){
     }
 }
 
-/*[ds]init_bot_labels 함수 : 봇이 넘긴 prediction 값을 가지고 레이블링 value가 0인지 1인지 판단한다.*/
+/*[ds]init_bot_labels function : Determine whether the labeling value is 0 ir 1 with the prediction value turned over by the bot */
 function init_bot_labels() {
     let cur_emo_idx = parseInt(current_emotion);
     console.log("this is emotion label: ");
@@ -152,22 +151,22 @@ function init_bot_labels() {
 }
 
 
-/*[ds] arrayRemove 함수 : 배열의 값을 지우는 함수(js에 따로 없음) */
+/*[ds] arrayRemove function : Eleminate the arryvalues(nothing in js) */
 function arrayRemove(arr, value) {
     return arr.filter((e) => {
         return e != value;
     });
 }
 
-/*[ds] ready_btn_handler 함수 : 준비버튼/준비취소버튼 누를 때 이벤트 담당하는 함수. */
+/*[ds] ready_btn_handler function : The function responsible for the event when the Ready button/Notready button is pressed. */
 function ready_btn_handler() {
     ready_btn = document.getElementById('ready_btn');
     var idx = 0;
 
     ready_btn.onclick = function () {
-        if (ready_btn.textContent == "READY") {     // [ny](1) 준비 버튼 누른다면,
+        if (ready_btn.textContent == "READY") {     // [ny](1)If ready button is pressed,
             layout2('wait_ready');
-            ready_btn.classList.remove('blink');    // [ny]깜빡임 효과 제거
+            ready_btn.classList.remove('blink');    // [ny]Remove the blink effect 
             ready_btn.textContent = "UNREADY";
             ready_btn.style.backgroundColor = '#D8D8D8';
             for (var i=0; i<4; i++){
@@ -178,7 +177,7 @@ function ready_btn_handler() {
                 }
             }
 
-            /*[ny]준비 눌렀다고 소켓에 쏴주기*/
+            /*[ny]Inform that ready button is pressed to socket*/
             var data = {
                 'username': username,
                 'command': 'btn_ready'
@@ -187,15 +186,15 @@ function ready_btn_handler() {
                 data
             }));
         }
-        else {                                      // [ny](2) 준비취소 버튼 누른다면,
+        else {                                      // [ny](2) If the notready button is preessed,
             layout2('click_ready');
-            ready_btn.classList.add('blink');       // [ny]깜빡임 효과 추가
+            ready_btn.classList.add('blink');       // [ny]Add blink effect
             ready_btn.textContent = "READY";
             ready_btn.style.backgroundColor = '#EBC604';
 
             profiles[idx].style.backgroundColor = "#dddddd";
 
-            /*[ny]준비취소 눌렀다고 소켓에 쏴주기*/
+            /*[ny]Inform that notready button is pressed to socket*/
             var data = {
                 'username': username,
                 'command': 'btn_notready'
@@ -207,36 +206,36 @@ function ready_btn_handler() {
     };
 }
 
-/*[ds] 메인 함수 : round 진행 전체 로직 작성 */
+/*[ds] Main function : Write the whole logic of round progress */
 function round() {
     switch ('block') {
         case document.getElementById('lobby').style.display:
-            //[ny]입장하자마자 sync_userlist() 동작함.
-            init();         // [ny]라운드 별 감정 랜덤화. 
-            init_profile(); // [ny]채널에 입장한 유저들 프로필 띄워줌.
+            //[ny]being Activated sync_userlist() when someone enters .
+            init();         // [ny]Randomize emotion for each round. 
+            init_profile(); // [ny]Show up the profile of users entering the channel.
             layout1('click_ready', 'lobby');
             layout2('click_ready');
-            ready_btn_handler(); // [ny]준비/준비취소 버튼 동작 구현.
+            ready_btn_handler(); // [ny]Implement the act of ready/notready button.
             break;
 
         case document.getElementById('round_start').style.display:
-            round_init(); // [ny]이미지 배정받고, 봇 예측. 
+            round_init(); // [ny]Being allocated imgs, bot prediction. 
             gamestart = true;
             var emotion_names = document.querySelectorAll('.emotion_name'); 
             full_emoji_src = '/static/images/' + emoji_src[current_emotion];
-            document.getElementById('large_emotion').src = full_emoji_src;      // [ny]이모지 로고 띄워주기.
+            document.getElementById('large_emotion').src = full_emoji_src;      // [ny]Show up the img logo.
             emotion_names.forEach((each_emotion_area) => { each_emotion_area.innerText = emotion_name[current_emotion]; });
             document.getElementById('emotion_instruction').innerText = emotion_instruction[current_emotion];
 
             if(current_round == 4){
-                document.getElementById('rn').innerText = "[ny]최종";
+                document.getElementById('rn').innerText = "[ny]final";
             }
             else{
                 document.getElementById('rn').innerText = current_round;
             }
             
             setTimeout(() => {
-                go_next_page('round_start', 'labeling'); // [ny]5초 후 labeling 시작.
+                go_next_page('round_start', 'labeling'); // [ny]Labeling after 5s.
                 round();
             }, 5000);
             break;
@@ -244,8 +243,8 @@ function round() {
         case document.getElementById('labeling').style.display:
             document.getElementById('emotion_name').innerText = emotion_name[current_emotion];
             layout1('round_title', 'labeling');
-            layout2('timer');   // [ny]타이머 작동.
-            labeling();         // [ny]레이블링 구현.
+            layout2('timer');   // [ny]Timer starts.
+            labeling();         // [ny]Implement labeling.
             break;
 
         case document.getElementById('waiting').style.display:  
@@ -255,7 +254,7 @@ function round() {
 
             layout1('round_title', 'waiting');  
             layout2('wait_labeling');
-            init_wait(); // [ny]레이블링 완료 후 대기중인 유저 프로필 활성화 시켜둠.
+            init_wait(); // [ny]Activate the waiting user after completing labeling.
             break;
 
         case document.getElementById('after_selection').style.display:
@@ -263,13 +262,13 @@ function round() {
                 document.getElementById('game_body').classList.remove('turn_grey');
             }
             document.getElementById('game_body').classList.add("turn_black");
-            sync_selection();               // [ny]유저들의 레이블링 결과를 소켓 통해 동기화.
+            sync_selection();               // [ny]Synchronize users' labeling through socket.
 
             console.log("these are all labelings!");
-            console.log(all_labeling_set);  // [ny]모두의 예측값 잘 들어왔는지 테스트. 
+            console.log(all_labeling_set);  // [ny]Take a test if all predictions are arrived well or not. 
 
             setTimeout(() => {
-                go_next_page('after_selection', 'glance'); //3초 후 glance page로 전환.
+                go_next_page('after_selection', 'glance'); //Convert to glance page after 3s.
                 round();
             }, 3500);
             break;
@@ -279,7 +278,7 @@ function round() {
             if(dropouts.includes(username)){
                 document.getElementById('game_body').classList.add('turn_grey');
             }
-            anonymous_order();  // [ny]익명 순서가 정해짐.
+            anonymous_order();  // [ny]Set the anonymous order.
             layout1('round_title', 'glance');
             glance();
             break;
@@ -298,7 +297,7 @@ function round() {
                 chip_area.innerHTML += '<img src="/static/images/chips.png" style="height:20px;"><img src="/static/images/chips.png" style="height:20px;">';
             }
 
-            if(username == memlist[0]){ // [ny]db업데이트를 위해 labeling set, image set 정보 전달
+            if(username == memlist[0]){ // [ny]labeling set, image set info deliver to update db
                 gameusers = [...survivors];
                 gameusers.push('봇');
 
@@ -316,7 +315,7 @@ function round() {
             }
             
             layout1('round_title', 'find_bot');
-            notice(current_round + '[ny]라운드를 시작합니다.<br>현재 생존자는 ' + survivor_count + '명입니다.', 'find_bot', 'small');
+            notice(current_round + '[ny]round starts.<br>there are ' + survivor_count + 'current survivor(s).', 'find_bot', 'small');
             current_selector = select_order[current_selector_idx];
             point_out_bot(current_selector);
             break;
@@ -326,7 +325,7 @@ function round() {
 round();
 
 
-/* [ds]show 함수 : 이미지 4개 띄움 */
+/* [ds]show function : Show 4 imgs up */
 function show(name, choice, page_name) {
     var color = [];
     for (var i=0; i<4; i++) {
@@ -335,7 +334,7 @@ function show(name, choice, page_name) {
       } else if(choice[i]==1) {
         color[i] = '#72DF4B';
       }
-      else if(choice[i]==2){ //[ny]증거제출 되었던 이미지라면,
+      else if(choice[i]==2){ //[ny]If this img is submitted as evidence before,
         color[i] = '#BBBBBB';
       }
     }
@@ -359,7 +358,7 @@ function show(name, choice, page_name) {
 }
 
 
-/*[ds]labeling 함수 : 이미지 선택 여부에 따라 bool타입으로 저장 */
+/*[ds]labeling function : Save as a boolean type depending on whether the image is selected or not */
 function labeling() {
     if (dropouts.includes(username)){
         go_next_page('labeling', 'waiting');
@@ -381,7 +380,7 @@ function labeling() {
         <span><div class="label_images" id="image_4"><img class="img" src="'+my_images[3]+'" loading="lazy" onerror="img_error()"></div></span>';
     
         timer_start(10);
-        //[ny]사진 클릭시 색 변환
+        //[ny]Change color when img is clicked
         var done_flag = false; 
         image_btn = document.querySelectorAll('.label_images');
         image_btn.forEach((target) => target.addEventListener("click", () => {
@@ -409,7 +408,7 @@ function labeling() {
         
     
         function update_labeling() {
-            if (done_flag == false) {                   // [ny]labeling_done_btn과 setTimeout에 의해 update_labeling() 중복 실행 방지.
+            if (done_flag == false) {                   // [ny]prevent duplicated act of update_labeling() by labeling_done_btn and setTimeout.
                 for (var i = 1; i < 5; i++) {
                     img = document.getElementById('image_' + i);
                     if (img.classList.contains("labeled")) {
@@ -417,7 +416,7 @@ function labeling() {
                     }
                 }
     
-                /*[ny]레이블링 끝났다고 소켓에 쏴주기*/    //[ny]완료버튼을 눌렀든, 10초가 지났든.
+                /*[ny]Inform that labling is doen to socket*/    //[ny]If the complet button is pressed or after 10s,
                 var data = {
                     'username' : username,
                     'command' : 'btn_labeling'
@@ -431,10 +430,10 @@ function labeling() {
             }
         }   
     }
-    console.log("[ny]저의 레이블링()은 무사히 완료되었습니다!!!");
+    console.log("[ny]My labeling() is safely done!!!");
 }
 
-/* [ds]shuffle 함수 : 리스트의 요소들을 섞는 함수, anonymous_order에서 사용 */
+/* [ds]shuffle function : shuffle the factors in list, used at anonymous_order */
 function shuffle(a) {
     var j, x, i;
     for (i = a.length; i; i -= 1) {
@@ -446,7 +445,7 @@ function shuffle(a) {
     return a;
 }
 
-/* [ds]range 함수 : start부터 count 만큼 숫자를 1씩 늘려가며 리스트를 만듦, anonymous_order에서 사용 */
+/* [ds]range function : Make a list by increasing the number by 1 by count from start, used in anonymous_order  */
 function range(start, count) {
     let array = [];
     while (count--) {
@@ -455,7 +454,7 @@ function range(start, count) {
     return array;
 }
 
-/* [ds]anonymous_order 함수 : 익명 1, 2, 3, 4에 해당하는 이름을 지정하는 딕셔너리를 만들어 소켓과 통신한다. */
+/* [ds]anonymous_order function : Create a dictionary that specifies names corresponding to anonymous 1, 2, 3, and 4 to communicate with the socket. */
 function anonymous_order() {
     var survivor_range = range(1, survivor_count + 1);
     shuffle(survivor_range);
@@ -465,7 +464,7 @@ function anonymous_order() {
     for (var anony_num of survivor_range) {
         anonymous_user[i++] = survivor_plus_bot[anony_num-1];                   // survivors
     }
-    select_order = shuffle(arrayRemove(Object.values(anonymous_user), '봇'));   // [ny]select order 다시 shuffle
+    select_order = shuffle(arrayRemove(Object.values(anonymous_user), '봇'));   // [ny]shuffle select order again
     var data = {
         'command': 'arrange_anonymous_order',
         'select_order': select_order,
@@ -476,7 +475,7 @@ function anonymous_order() {
     }));
 }
 
-/*[ds] glance_content(order)함수 : 라벨링의 결과를 HTML 화면에 보여주는 함수 */
+/*[ds] glance_content(order)function : Show the labeling results on HTML */
 function glance_content(order) {
     var bottom_area = document.getElementById('glance_bottom');
     var real_order = order + 1;
@@ -522,7 +521,7 @@ function glance_content(order) {
 
 }
 
-/*[ds] glance 함수 : 시간 간격을 가자고 glance_content를 호출 */
+/*[ds] glance function : Invoke glance_content with time spaces*/
 function glance() {
     document.getElementById('glance_top').innerHTML = "";
     document.getElementById('glance_content').innerHTML = '<br><br><br><br><br><div class="loading"><div></div></div>';
@@ -543,13 +542,13 @@ function glance() {
     }, 3700);
 }
 
-/* [ds]set_anonymous_btn 함수 : find_bot 페이지에서 익명 버튼을 자신 빼고 보여주는 함수 */
+/* [ds]set_anonymous_btn function : Show the anonymous botton except itself on ind_bot page */
 function set_anonymous_btn() {
     for (var i of Object.keys(anonymous_user)) {
         if (anonymous_user[i] == username) {
             document.getElementById('anonymous_btns').innerHTML += '<button class="anonymous" id="anonymous_' + i + '" type="button">Me</button>'
         }
-        else if(dropouts.includes(anonymous_user[i])){      // [ny]관전자라면
+        else if(dropouts.includes(anonymous_user[i])){      // [ny]It who is observers,
             document.getElementById('anonymous_btns').innerHTML += '<button class="anonymous" id="anonymous_' + i + '" type="button">Out</button>'
             document.getElementById('anonymous_'+i).disabled = true;
 
@@ -563,7 +562,7 @@ function set_anonymous_btn() {
 var i_ga = '';
 var eun_neun = '';
 var eul_leul = '';
-/*[ds] set_postposition 함수: 은/는/이/가/을/를 을 익명에 맞추어 지정하는 함수 [ah]나중에 지우기*/
+/*[ds] set_postposition function: a function that anonymously specifies thatletter  [ah]나중에 지우기*/
 function set_postposition(target_number) {
     if (target_number == 1 || target_number == 3) {
         i_ga = '이';
@@ -576,13 +575,13 @@ function set_postposition(target_number) {
     }
 }
 
-/*[ds] game_end 함수: 게임이 끝났는 지 확인하는 함수 */
+/*[ds] game_end function: Check if the game is done or not */
 function game_end() {
-    //    봇을 찾으면 win
-    //    사람이 두명 남으면 lose
-    //    5라운드까지 가면 lose(current_round == 5)
-    //    나머진 continue
-    if(bot_death == true){          // [ny]승리
+    //    win if you find the bot
+    //    lose if there are only 2 people
+    //    lose(current_round == 5) if you are in round 5
+    //    continue in rest of cases
+    if(bot_death == true){          // [ny]Win
         if (memlist[0] == username) {
 
             gameusers = [...survivors];
@@ -600,7 +599,7 @@ function game_end() {
         }
         return 'win';
     }
-    else if(survivor_count == 2){   // [ny]패배
+    else if(survivor_count == 2){   // [ny]defeat
         if (memlist[0] == username) {
 
             gameusers = [...survivors];
@@ -619,7 +618,7 @@ function game_end() {
 
         return 'lose';
     }
-    else if(current_round == 5){    // [ny]패배
+    else if(current_round == 5){    // [ny]defeat
 
         if (memlist[0] == username) {
 
@@ -646,7 +645,7 @@ function game_end() {
 }
 
 
-/* [ds]button_pointing_or_pass 함수: 증거를 지목하고 socket에 보내는 함수 */
+/* [ds]button_pointing_or_pass function: Send the evidence which is pointed out to socket */
 function button_pointing_or_pass() {
     var pointed_img_set = [];
     set_anonymous_btn();
@@ -658,24 +657,24 @@ function button_pointing_or_pass() {
     document.getElementById('anonymous_'+my_anony_idx).disabled = true;
 
     
-    anonymous_btn.forEach((target) => target.addEventListener("click", () => {  // [ny]익명 버튼이 클릭되면
+    anonymous_btn.forEach((target) => target.addEventListener("click", () => {  // [ny]If the anonymous button is clicked
         anonymous_btn.forEach((each_btn) => {
-            each_btn.classList.remove("clicked");           // [ny]clicked라는 클래스를 추가 -> css를 설정해 둠
+            each_btn.classList.remove("clicked");           // [ny]Add the class named clicked -> Set on css
         });
         target.classList.add("clicked");
 
-        target_num = target.id.charAt(target.id.length - 1); //[ny]익 1,2,3,4,5 중 하나
+        target_num = target.id.charAt(target.id.length - 1); //[ny]one of anonymous 1,2,3,4,5
         idxNum = parseInt(target_num);
         var target_name = anonymous_user[target_num];
         var target_choice = all_labeling_set[target_name];
 
         show(target_name, target_choice, 'find_bot');
 
-        //[ny]이미지 골라진 거에 clicked 클래스 추가 
+        //[ny]Add class named clicked in selected img 
         pointed_img_set = document.querySelectorAll('.point_images');
 
         var idx=0;
-        pointed_img_set.forEach((pointed)=>{ //[ny]증거 제출 된 전적 있는 이미지는 선택 못함.
+        pointed_img_set.forEach((pointed)=>{ //[ny]Can't pick the img submitted as evidence before.
             if(target_choice[idx]==2){
                 pointed.classList.add("nonepoint");
             }
@@ -701,7 +700,7 @@ function button_pointing_or_pass() {
 
 
     var pointed_img_idx;    // [ny]0,1,2,3 중 하나
-    document.getElementById('point_done').addEventListener("click", () => { //[ny] 확인 버튼 눌렀을 때
+    document.getElementById('point_done').addEventListener("click", () => { //[ny] when done button is pressed
         var point_flag = false;
         try {
             for (var i = 0; i < 4; i++) {
@@ -731,11 +730,11 @@ function button_pointing_or_pass() {
             }
 
         } catch {
-            console.log("[ny]지목 후 확인 필수!!")
+            console.log("[ny]Must check after pointing out!!")
         }
     });
 
-    document.getElementById('pass').addEventListener("click", () => { // [ny]패스 버튼 눌렀을 때
+    document.getElementById('pass').addEventListener("click", () => { // [ny]When the pass button is pressed
         document.getElementById('pass').style.backgroundColor = "#EBC604";
         clearTimeout(go_elect);
         document.getElementById('pass').disabled = true;
@@ -755,10 +754,10 @@ function button_pointing_or_pass() {
         document.getElementById('pass').click();
     }, 16000);
 
-    //[ny]15초 지나면 elect 창으로
+    //[ny]Move to elect window after 15s
 }
 
-/* [ds]next_point_out_bot 함수: 다음 익명 유저가 봇을 지목할 수 있도록 넘기는 함수 */
+/* [ds]next_point_out_bot function: A function that turns over so that the next anonymous user can point to a bot */
 function next_point_out_bot() {
     current_selector_idx = (current_selector_idx+1)%survivor_count;
     current_selector = select_order[current_selector_idx];
@@ -786,12 +785,12 @@ function next_point_out_bot() {
     var flag_die = false;
     var lose_reason = 'die';        // [ny]exceed OR die
     var now_round = current_round;
-    /*[ny]게임 종료 검사*/
+    /*[ny]Inspect game over*/
     if (res == 'win') {
         gamestart = false;
         get_money = money_table[current_round - 1];
         if (dropouts.includes(username)) {
-            get_money /= 2;         // [ny]관전자는 절반 획득.
+            get_money /= 2;         // [ny]Observer acquires the half rewards.
             flag_die = true;
         }
 
@@ -807,7 +806,7 @@ function next_point_out_bot() {
     }
 }
 
-/* [ds]vacate_find_bot_content 함수: find_bot 페이지의 content를 비우는 함수 */
+/* [ds]vacate_find_bot_content function: Empty content out in find_bot page */
 function vacate_find_bot_content() {
     document.getElementById('anonymous_btns').innerHTML = "";
     document.getElementById('find_bot_img_container').innerHTML = "";
@@ -819,17 +818,17 @@ function vacate_find_bot_content() {
 
 
 
-/* [ds]elect 함수: 투표한 뒤 결과를 socket에 전송하는 함수 */
+/* [ds]elect function: Send the reseult of voting to socket */
 function elect(current_selector, current_chosen) {
-    // [ny]익명 버튼 보여주기
+    // [ny]Show the anonymous button
     vacate_find_bot_content();
     set_anonymous_btn();
     if (current_chosen != username) {
         document.getElementById('anonymous_' + pointed_info['target_num']).style.backgroundColor = 'rgb(235, 198, 4)';
     }
-    // pass_count++; //[ny]투표는 패스로 치지 않음.
+    // pass_count++; //[ny]vote is not a pass.
 
-    // [ny]증거 보여주는 함수
+    // [ny]functon showing the evidence
     function show_evidence(towhom) {
         if (towhom == current_chosen) {
             document.getElementById('find_bot_img_container').innerHTML = "\
@@ -852,7 +851,7 @@ function elect(current_selector, current_chosen) {
         }
     }
     layout3('pointed');
-    if (current_chosen == username) {           // [ny]내가 지목 당함
+    if (current_chosen == username) {           // [ny]I'm pointed out
         document.getElementById('game_body').classList.add("warnings");
         document.getElementById('find_bot').classList.add("warnings");
         show_evidence(current_chosen);
@@ -861,7 +860,8 @@ function elect(current_selector, current_chosen) {
             layout3('wait_elect');
         }, 2000);
     }
-    else if (current_selector == username) {    // [ny]선택한 사람이 나일때
+    else if (current_selector == username) {    // [ny]If I am a picker
+
         show_evidence(current_selector);
 
         setTimeout(() => {
@@ -869,7 +869,7 @@ function elect(current_selector, current_chosen) {
             layout3('wait_elect');
         }, 2000);
     }
-    else if (dropouts.includes(username)) {     // [ny]관전 모드
+    else if (dropouts.includes(username)) {     // [ny]Observer mode
         monitor();
         show_evidence(current_selector);
 
@@ -878,7 +878,7 @@ function elect(current_selector, current_chosen) {
             layout3('wait_elect');            
         }, 2000);
     }
-    else {                                      // [ny]내가 지목 당하지 않음
+    else {                                      // [ny]I am not pointed out
         show_evidence("I'll vote");
 
         setTimeout(() => {
@@ -890,7 +890,7 @@ function elect(current_selector, current_chosen) {
             document.getElementById('point_pass_yes_no_area').innerHTML = '\
             <button type="button" class="point_pass_yes_no" id="thumb_up"><img src="/static/images/profile.png" style="width:35px;"></button>\
             <button type="button" class="point_pass_yes_no voted" id="thumb_down"><img src="/static/images/bot.png" style="width:36px;"></button>';
-            //[ny]thumbs down은 default로 투표 되어 있음.
+            //[ny]thumbs down is voted as default.
 
             var thumbs = document.querySelectorAll('.point_pass_yes_no');
             var btn_name = "";
@@ -932,10 +932,10 @@ function elect(current_selector, current_chosen) {
 
 var elect_result = {
     'thumb_up': 0,
-    'thumb_down': 0,    // [ny]봇은 무조건 투표
+    'thumb_down': 0,    // [ny]bot should vote 
 };
 
-/*[ds] show_elect_result 함수: 투표 결과를 보여주는 함수 */
+/*[ds] show_elect_result function: Show the result of voting */
 function show_elect_result(current_chosen) {
     document.getElementById('find_bot_timer').innerHTML = "";
     document.getElementById('point_pass_yes_no_area').innerHTML = "";
@@ -957,7 +957,7 @@ function show_elect_result(current_chosen) {
         elect_word = 'maybe man';
     }
 
-    if (elect_death_flag == true) { //[ny]투표 결과 : 죽이자 라면,
+    if (elect_death_flag == true) { //[ny]reseults of vote : let's kill,
         thumb_backcolor[1] = '#EBC604';
         document.getElementById('find_bot_img_container').innerHTML += '<p style="font-size:12px;">A majority suspects <b style="color:#EBC604;">it\'s a bot.</p>';
         
@@ -968,7 +968,7 @@ function show_elect_result(current_chosen) {
         thumb_backcolor[0] = '#EBC604';
         document.getElementById('find_bot_img_container').innerHTML += '<p style="font-size:12px;">Avoided suspicion.</p>';
         setTimeout(() => {
-            all_labeling_set[current_chosen][pointed_info['pointed_img_idx']] = 2; //[ny]증거제출되었던 건은 2로 변경.
+            all_labeling_set[current_chosen][pointed_info['pointed_img_idx']] = 2; //[ny]Change the submitted evidence parameter as 2.
             next_point_out_bot();
         }, 2000);
     }
@@ -995,7 +995,7 @@ function show_elect_result(current_chosen) {
 
 }
 
-/*[ds] point_pass 함수: 봇 지목을 포기했을 때 작동되는 함수 */
+/*[ds] point_pass function: Activated when giving up to point out the bot */
 function point_pass() {
     layout3('pass');
 
@@ -1003,7 +1003,7 @@ function point_pass() {
     var line1 = document.getElementById('find_bot_img_container');
     var line1Spans = document.querySelectorAll('.pass_span');
 
-    // [ny]pass 애니메이션
+    // [ny]pass Animation
     TweenMax.set([line1], {
         x: -15
     })
@@ -1034,35 +1034,35 @@ function point_pass() {
 }
 
 
-/*[ds]bot_define_last_mention 함수 : 봇이 최후의 변론 증거로 제출할 우선순위 src를 세팅해두는 함수 */
+/*[ds]bot_define_last_mention function : A function that sets the priority src to be submitted by the bot as evidence of the last defense */
 function bot_define_last_mention() {
     /*
-    #로직# (@@ 테스트 시 봇이 최후의 변론 너무 못하면 규칙 수정하자. )
+    #logic# (@@ 테스트 시 봇이 최후의 변론 너무 못하면 규칙 수정하자. )
     // (1) current_emotion 인데 레이블링 안했을 경우
     // (2) current_emotion 아닌데 레이블링 했을 경우
     */
     let cur_emo_idx = parseInt(current_emotion);
     abs = {};
-    for (var i = 0; i < 4; i++) {   // [ny]|(봇의 예측값-0.4)| 를 딕셔너리에 넣어준다. 
+    for (var i = 0; i < 4; i++) {   // [ny]|(Prediction of bot : -0.4)| is put in dictionary. 
         diff = Math.abs(bot_prediction[i][cur_emo_idx] - 0.4);
         abs[i] = diff;
     }
 
-    /*dictionary abs sorting*/      //[ny]절대값 차 작을수록 잘못 레이블링할 가능성 높음.
+    /*dictionary abs sorting*/      //[ny]possibly there is wrong labeling if the difference of absolute value is small.
     priorities = Object.entries(abs).sort((a, b) => a[1] - b[1]);
     console.log("this is sorted dictionary!");
     console.log(priorities);
 }
 
-/*bot_last_mention 함수: 봇이 최후의 변론 증거 맞추는 함수 */
+/*bot_last_mention function: guess the evidence of last defense by bot */
 function bot_last_mention() {
-    /*[ny]우선순위부터 return 하기.*/
+    /*[ny]return from prior order.*/
     for (let element of priorities) {
-        idx = element[0];   //[ny]n번째 이미지
-        if (all_labeling_set['봇'][idx] == 2) { //[ny]이미 증거 제출 되었었다면,
+        idx = element[0];   //[ny]img of nth
+        if (all_labeling_set['봇'][idx] == 2) { //[ny]If it is already submitted as evidence,
             continue;
         }
-        else {                                  //[ny]증거 제출된 적 없었다면,
+        else {                                  //[ny]If it is not submitted as evidence,
             console.log("봇이 증거를 제출했습니다.");
             console.log(all_image_set['봇'][idx]);
             return idx;
@@ -1071,7 +1071,7 @@ function bot_last_mention() {
 
 }
 
-/*[ds] ready_last_mention 함수: 최후의 변론 전, 증거와 최후의 변론 사진을 setting하는 함수 */
+/*[ds] ready_last_mention function: Before last defense, Set the evidence and img of last defense */
 function ready_last_mention(current_chosen) {
     var color = 'yellow';
     var ox = '';
@@ -1100,7 +1100,7 @@ function ready_last_mention(current_chosen) {
         timer_start2('find_bot_timer', 6);
         layout3('ready_last_mention');
         var idx=0;
-        pointed_img_set.forEach((pointed)=>{                //[ny]증거 제출 된 전적 있는 이미지는 선택 못함.
+        pointed_img_set.forEach((pointed)=>{                //[ny]You can't choose  img if it is already submitted as evidence.
             if(all_labeling_set[current_chosen][idx]==2){
                 pointed.classList.add("nonepoint");
             }
@@ -1162,23 +1162,23 @@ function ready_last_mention(current_chosen) {
             socket.send(JSON.stringify({
                 data
             }));
-        }, 7000);   // [ny] 5초 뒤에 봇이 변론 제출.
+        }, 7000);   // [ny] Submit the defense by bot after 5s.
         layout3('wait_last_mention');
-        document.getElementById('last_mention_evidence').src = all_image_set[current_chosen][pointed_info['pointed_img_idx']];  // [ny]증거 src
+        document.getElementById('last_mention_evidence').src = all_image_set[current_chosen][pointed_info['pointed_img_idx']];  // [ny]evience src
 
     }
     else {
         layout3('wait_last_mention');
-        document.getElementById('last_mention_evidence').src = all_image_set[current_chosen][pointed_info['pointed_img_idx']];  // [ny]증거 src
+        document.getElementById('last_mention_evidence').src = all_image_set[current_chosen][pointed_info['pointed_img_idx']];  // [ny]evidence src
     }
 
 }
 
-/* [ds]last_mention 함수: 최후의 변론을 진행하는 함수 */
+/* [ds]last_mention function: Do Last defense */
 function last_mention(current_chosen, last_mention_idx) {
     var who = "";
     var color = 'yellow';
-    layout3("last_mention"); //[ny]최후의 변론을 진행합니다!
+    layout3("last_mention"); //[ny]Let's move on last defense!
     if (all_labeling_set[current_chosen][pointed_info['pointed_img_idx']] == 0) {
         color = 'red';
     } else {
@@ -1199,8 +1199,8 @@ function last_mention(current_chosen, last_mention_idx) {
         document.getElementById('last_mention_image').classList.add("blink");
     }
     setTimeout(() => {
-        document.getElementById('last_mention_image').src = all_image_set[current_chosen][last_mention_idx];                    // [ny]최후의 변론에서 지목당한 사람이 고른 src
-        document.getElementById('last_mention_evidence').src = all_image_set[current_chosen][pointed_info['pointed_img_idx']];  // [ny]이건 아직 지목 당한 사람이 evidence 사진이 없어서 추가
+        document.getElementById('last_mention_image').src = all_image_set[current_chosen][last_mention_idx];                    // [ny]src picked by a pointed out person on last defense
+        document.getElementById('last_mention_evidence').src = all_image_set[current_chosen][pointed_info['pointed_img_idx']];  // [ny]Add evidence img by the not pointed out person yet
         
         var img_evidence = document.getElementById('last_mention_evidence');
         var img_last_mention = document.getElementById('last_mention_image');
@@ -1266,16 +1266,16 @@ function last_mention(current_chosen, last_mention_idx) {
                 }
             }, 3000);
         }
-        all_labeling_set[current_chosen][pointed_info['pointed_img_idx']] = 2; // [ny]증거제출 끝났으므로 2로 변경
+        all_labeling_set[current_chosen][pointed_info['pointed_img_idx']] = 2; // [ny]Change as 2 because evidence submit is already done 
     }, 3000);
 }
 
 var dropouts = [];
 
-/* [ds]show_identity 함수 : 정체를 밝히고 봇 or 사람 죽음에 대해 처리해주는 함수 */
+/* [ds]show_identity function : Inspect the player if he is bot or human and deal with the death after that */
 function show_identity(whom){
     notice("The identify of anony "+pointed_info['target_num']+" is..!", 'find_bot', '15px');
-    /*[ny]뒤지기(aim이 이리저리 움직이는 거예요) 애니메이션*/
+    /*[ny]figure out(aim is moving) animation*/
     document.getElementById('find_bot_img_container').innerHTML = '<img src="/static/images/aim.png" class="detect" style="width: 100px;"></img>';
     
     var identity_result = 'man';
@@ -1284,17 +1284,17 @@ function show_identity(whom){
     }
     
     setTimeout(()=>{
-        if(whom == '봇'){   //[ny]정체가 봇이라면,
+        if(whom == '봇'){   //[ny] If it is bot,
             notice("<span style='color:;color:rgb(255, 51, 5)'>the bot!<span>", 'find_bot', '20px');
             bot_death = true;
-            /*[ny]봇 죽음*/
+            /*[ny]bot is dead*/
             document.getElementById('find_bot_img_container').innerHTML = "<br><br><br><br><br><img src='/static/images/pixel_bot.png' class='blink' style='width:90px'>";
             /**/
             setTimeout(() => {
                 next_point_out_bot();
-            },3500);        //[ny]they_found_bot 코드 옮겨옴.
+            },3500);        //[ny]bring they_found_bot.
         }
-        else{               //[ny]정체가 사람이라면,
+        else{               //[ny]if it is human,
             survivors = arrayRemove(survivors, whom);
             select_order = arrayRemove(select_order, whom);
             survivor_count = survivors.length;
@@ -1306,7 +1306,7 @@ function show_identity(whom){
                 pass_count--;
                 pass_flag[whom] = 'die';
             }
-            /*[ny]사람 죽음*/
+            /*[ny]human is dead*/
             document.getElementById('find_bot_img_container').innerHTML = "<br><br><br><br><br><br><br><br><img id = 'rip_id' src='/static/images/rip.png'>";
             document.getElementById('find_bot_img_container').innerHTML += "<img src='/static/images/ghost.png' id = 'ghost_id' class ='ghost'>"; //margin-left: -50px;
             /**/
@@ -1330,7 +1330,7 @@ function show_identity(whom){
             },4000);
 
             setTimeout(() => {
-                if(whom == username){   //[ny]죽은 사람이 나라면,
+                if(whom == username){   //[ny]If i am the dead person,
                     document.getElementById('game_body').classList.add('turn_grey');
                     document.getElementById('round_start').classList.add('turn_grey');
                     document.getElementById('waiting').classList.add('turn_grey');
@@ -1343,17 +1343,17 @@ function show_identity(whom){
     },4000);
 }
 
-/* [ds]history 함수 : history 세션 노출시키는 함수 */
+/* [ds]history function : Exposure the history session */
 function history(){
     notice('Helpful Tips!', 'find_bot', '20px');
 
-    if(hint.length == 1){   // [ny]전문가의 응답
+    if(hint.length == 1){   // [ny]Response of expert
         document.getElementById('find_bot_img_container').innerHTML = "<br><br>표정 전문가의 의견: <b style='color:#2E64FE;'>" + emotion_name[hint[0]] + "</b>";
         document.getElementById('find_bot_img_container').innerHTML += "<br><br><span><img id='preview' src='"+ all_image_set[anonymous_user[pointed_info['target_num']]][pointed_info['pointed_img_idx']]+"'\
          style='width:120px;'></span>";
         layout3('history_expert');
     }
-    else{                   // [ny]플레이어들의 응답
+    else{                   // [ny]Response of players
         document.getElementById('find_bot_img_container').innerHTML = "<br><span><img id='preview' src='"+ all_image_set[anonymous_user[pointed_info['target_num']]][pointed_info['pointed_img_idx']]+"'\
          style='width:70px;'></span>";
         document.getElementById('find_bot_img_container').innerHTML += "<canvas id='myChart'></canvas>";
@@ -1363,7 +1363,7 @@ function history(){
 }
 
 
-/*[ds] no_mention 함수 : 최후의 변론을 하지 않았을 경우, 곧바로 호출되는 함수 */
+/*[ds] no_mention function : A function that is immediately called if the last defense is not made */
 function no_mention(whom) {
     if(username == current_chosen){
         var data = {
@@ -1376,7 +1376,7 @@ function no_mention(whom) {
         }));
     }
     notice("The identify of anony " + pointed_info['target_num'] + " is..!", 'find_bot', '15px');
-    /*[ny]뒤지기 애니메이션*/
+    /*[ny]Figure out animation*/
     document.getElementById('find_bot_img_container').innerHTML = '<img src="/static/images/aim.png" class="detect" style="width: 100px;"></img>';
 
     setTimeout(() => {
@@ -1392,7 +1392,7 @@ function no_mention(whom) {
             pass_flag[whom] = 'die';
         }
 
-        /*[ny]사람 죽음*/
+        /*[ny]human is dead*/
         document.getElementById('find_bot_img_container').innerHTML = "<br><br><br><br><br><br><br><br><img id = 'rip_id' src='/static/images/rip.png'>";
         document.getElementById('find_bot_img_container').innerHTML += "<img src='/static/images/ghost.png' id = 'ghost_id' class ='ghost'>"; //margin-left: -50px;
         /**/
@@ -1417,7 +1417,7 @@ function no_mention(whom) {
         },4000);
         
         setTimeout(() => {
-            if (whom == username) {     //[ny]죽은 사람이 나라면,
+            if (whom == username) {     //[ny]If I am dead person,
                 document.getElementById('game_body').classList.add('turn_grey');
                 document.getElementById('round_start').classList.add('turn_grey');
                 document.getElementById('waiting').classList.add('turn_grey');
@@ -1429,12 +1429,12 @@ function no_mention(whom) {
     }, 4000);
 }
 
-/* [ds]getKeyByValue 함수 : dictionary의 value 값으로 key를 찾는 함수 */
+/* [ds]getKeyByValue function : A function that finds the key using the value in dictionary */
 function getKeyByValue(obj, value) {
     return Object.keys(obj).find(key => obj[key] === value);
 }
 
-/* [ds]go_next_round 함수: 다음 라운드로 넘어가게 하는 함수 */
+/* [ds]go_next_round function: A function that lets the user move to next round*/
 function go_next_round() {
     document.getElementById('find_bot_img_container').innerHTML = '<br><br><br><br><br><br><span class="next_span">Next</span><span class="space"></span><span class="next_span">Round!</span>';
     document.getElementById('find_bot_img_container').innerHTML += '<br><span class="next_span_info"><span class="space"></span>earned points▼</span>';
@@ -1442,7 +1442,7 @@ function go_next_round() {
     var line1 = document.getElementById('find_bot_img_container');
     var line1Spans = document.querySelectorAll('.next_span');
 
-        // [ny]pass 애니메이션
+        // [ny]pass animation
         TweenMax.set([line1], {
             x: -15
         })
@@ -1468,7 +1468,7 @@ function go_next_round() {
         )
 
     setTimeout(() => {
-        // [ny]init 역할
+        // [ny]init role
         vacate_find_bot_content();
         current_emotion = emotion_order[current_round-1];
         pointed_info = {
@@ -1504,15 +1504,15 @@ function monitor() {
     document.getElementById('point_pass_yes_no_area').innerHTML = "<div id='watching'>Deactivated..</div>"
 }
 
-/* [ds]point_out_bot 함수 : find_bot 페이지에서 봇 찾는 함수 */
+/* [ds]point_out_bot function : A function that figure out the bot in find_bot page */
 function point_out_bot(current_selector) {
 
     var flag = false;
     if (pass_count >= survivor_count) {
         current_round++;
         var res = game_end();
-        if(res == 'lose'){ // [ny]라운드 초과해서 질 경우. 
-            /*[ny]4라운드 넘어가서 졌을 경우!*/
+        if(res == 'lose'){ // [ny]If i lose because of overround. 
+            /*[ny]If I lose because round is over 4!*/
             gamestart = false;
             var get_money = 0;
             var get_exp = 200;
@@ -1548,7 +1548,7 @@ function point_out_bot(current_selector) {
         flag = true;
     }
     else {
-        console.log('[ny]지금의 지목자는 ', current_selector, ' 입니다!!!!');
+        console.log('[ny]Current pointer is ', current_selector, ' [ny]!!!!');
 
         if (current_selector == username) {
             notice('Pointing out', 'find_bot', '20px'); 
@@ -1558,7 +1558,7 @@ function point_out_bot(current_selector) {
             notice('Browse!', 'find_bot', '17px'); 
             layout3('wait_pointing');
 
-            /*[ny]기다리는 동안 훑어보기*/
+            /*[ny]Quick glance while wating*/
             set_anonymous_btn();
             var target_num = 'who?';
             var anonymous_btn = document.querySelectorAll('.anonymous');

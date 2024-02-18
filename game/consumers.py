@@ -1,7 +1,7 @@
 """
 Consumer config.
 
-[ny]Websocket 통신을 위한 Channels 라이브러리 사용 시 필요한 consumer 정의
+[ny]Definite consumer which is necessary to access the library of Channels to communicate with Websocket
 
 """
 from channels.generic.websocket import AsyncWebsocketConsumer #websocket 사용 위한 consumer import
@@ -25,33 +25,33 @@ class RoomConsumer(AsyncWebsocketConsumer):
     """
     [ds]RoomConsumer define
 
-    채널 접속 시 game/game.html과 ws 통신을 위한 consumer class. 
+    consumer class for communication between game/game.html and ws When accessing channel. 
 
-    [기능]
-    1) 입장 시 db에 등록 및 채널 내 플레이어들에게 입장 알림.
-    2) 퇴장 시 db에서 제거 및 채널 내 플레이어들에게 퇴장 알림. 
-    3) 채널 접속 중 새 플레이어 입/퇴장 시 html 페이지에 프로필 로드.
-    4) 준비/준비취소 버튼 클릭 시 채널 내 플레이어들에게 알림.
-    5) 유저리스트(memlist) 동기화.
-    6) 레이블링 완료 후 대기화면에서 대기 구현.
-    7) 각자의 이미지셋(all_image_set)과 레이블링셋(all_labeling_set) 동기화.
+    [Function]
+    1) Register with db at entry and notify players in the channel of entry.
+    2) Remove from db on exit and notify players in the channel of exit. 
+    3) Load profiles on the html page upon entry/exit of new players during channel access.
+    4) Notify the players in the channel when you click the Ready/Notready button..
+    5) Synchronize memlist.
+    6) Implement 'Waiting' on waiting display after labeling.
+    7) Synchronize each of imgsets(all_image_set) and labeling sets(all_labeling_set).
 
     """
     async def connect(self):
         """
         [ds]RoomConsumer.connect(self)
 
-        ws 접속 시 비동기적으로 호출되는 함수.
+        Functions that are asynchronously invoked on ws connection.
 
         """
-        self.user = self.scope['url_route']['kwargs']['username']           #[ny]이 ws을 통해 접속한 유저. websocket routing 시 url에 감싸여 전달된 username으로 초기화.
-        self.room_number = self.scope['url_route']['kwargs']['room_num']    #[ny]이 ws을 통해 접속한 채널. websocket routing 시 url에 감싸여 전달된 room_num으로 초기화.
-        self.teamid = self.scope['url_route']['kwargs']['team_id']          #[ny]ws을 통해 접속한 유저의 teamid. 
-        self.room_group_number = 'chat_%s' % self.room_number               #[ny]채널에 접속한 플레이어들을 묶어주는 그룹명. ex)'chat_1'
+        self.user = self.scope['url_route']['kwargs']['username']           #[ny]The user connected through this ws. Reset the user as the username delivered by url on websocket routing.
+        self.room_number = self.scope['url_route']['kwargs']['room_num']    #[ny]The channel connected through this ws. Reset the channel as the room_num delivered by url on websocket routing.
+        self.teamid = self.scope['url_route']['kwargs']['team_id']          #[ny]The team id of the user connected through this ws. 
+        self.room_group_number = 'chat_%s' % self.room_number               #[ny]The group name gatherd the players connected on chanenl. ex)'chat_1'
         self.users ={} #전체 유저 리스트
-        self.tempuser = ""      #[ny]준비/준비취소 버튼을 누른 유저를 저장하는 변수
-        self.temp_imgid = ""    #[ny]현재 샘플링 검사할 img의 id를 저장하는 임시변수
-        self.temp_emoid = ""    #[ny]현재 샘플링 검사할 img의 emotion 저장하는 임시변수
+        self.tempuser = ""      #[ny]The variable storing the users who pressed the ready/notready button 
+        self.temp_imgid = ""    #[ny]Temporary variable storing id of the img to be sampled at this time
+        self.temp_emoid = ""    #[ny]Temporary variable storing emotion of the img to be sampled at this time
         self.entry_enable = False
         self.all_imageid_set = {}
         self.all_labeling_set = {}
@@ -69,8 +69,8 @@ class RoomConsumer(AsyncWebsocketConsumer):
         self.empties = []
         self.imgcsv = []
 
-        print('[',self.get_time(), '] ', '[ ', self.user, ' ]', self.user, '[ny]의 웹소켓이 연결되었습니다.');
-        print('[',self.get_time(), '] ', '[ ', self.user, ' ]',self.user, '[ny]를 DB 채널방에 등록하겠습니다.');
+        print('[',self.get_time(), '] ', '[ ', self.user, ' ]', self.user, 'A websocek of [ny] is connected.');
+        print('[',self.get_time(), '] ', '[ ', self.user, ' ]',self.user, 'Will register [ny]in the DB channel room.');
 
         ch_layer = get_channel_layer()
         all_chat = self.channel_layer.groups.keys()
@@ -78,12 +78,12 @@ class RoomConsumer(AsyncWebsocketConsumer):
         print('[',self.get_time(), '] ', "this is my self.channel_name: ", self.channel_name)
         print('[',self.get_time(), '] ', "this is my channel layer: ", ch_layer)
 
-        await database_sync_to_async(self.db_add_user)()        #[ny]ws 연결 시 db에 플레이어 등록
+        await database_sync_to_async(self.db_add_user)()        #[ny]Register the player on db when connecting ws
 
-        print('[',self.get_time(), '] ','[ ', self.user, ' ]',self.user, '[ny]가 웹소켓 그룹에 추가됩니다.');
+        print('[',self.get_time(), '] ','[ ', self.user, ' ]',self.user, '[ny] Will be added in websocekt group.');
 
 
-        await self.channel_layer.group_add(self.room_group_number, self.channel_name)       #[ny]ws 연결 시 channel group에 message send.
+        await self.channel_layer.group_add(self.room_group_number, self.channel_name)       #[ny]Sending msg to channel group when connecting ws.
         print('[',self.get_time(), '] ',"this is all channels in the game: ", all_chat)
         print('[',self.get_time(), '] ',"all layers in this channel groups: ", self.channel_layer.groups.get(self.room_group_number, {}).items())
 
@@ -94,21 +94,21 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.disconnect(self, close_code)
 
-        ws 끊기면 비동기적으로 호출되는 함수.
+        Functions that are asynchronously invoked on ws unconnection.
 
         """
-        print('[',self.get_time(), '] ','[ ', self.user, ' ]','[ny]나의 웹소켓이 끊겼습니다.');
-        print('[',self.get_time(), '] ','[ ', self.user, ' ]','[ny]나를 DB 채널방에서 제거하겠습니다.');
-        await database_sync_to_async(self.db_remove_user)()     #[ny]ws 끊길 시 db에서 플레이어 제거
+        print('[',self.get_time(), '] ','[ ', self.user, ' ]','[ny]My websocket is unconnected.');
+        print('[',self.get_time(), '] ','[ ', self.user, ' ]','[ny]Will reomve me from DB channel room.');
+        await database_sync_to_async(self.db_remove_user)()     #[ny]Eliminate player from db when ws is unconnected
 
-        #[ny]ws 끊길 시 채널 내 모든 플레이어에게 누가 퇴장했는지 알림
+        #[ny]Inform who is elminated to every players when ws is unconnected 
         rm_user = {}
         rm_user['username'] = self.user
         rm_user['command'] = 'disconnect'
-        text_data = json.dumps(rm_user) #[ny]플레이어 이름과 connect 정보를 json포맷으로 묶어 저장.
+        text_data = json.dumps(rm_user) #[ny]Store name of players and informations of connect in json format together.
 
-        print('[',self.get_time(), '] ','[ ', self.user, ' ]','[ny]내가 퇴장했음을 모두에게 알리겠습니다.');
-        #[ny]채널 내 모든 플레이어에게 text_data 전송
+        print('[',self.get_time(), '] ','[ ', self.user, ' ]','[ny]Will notify I got removed to everyone.');
+        #[ny]Send text_data to every players in channel
         await self.channel_layer.group_send(
             self.room_group_number,
             {
@@ -117,8 +117,8 @@ class RoomConsumer(AsyncWebsocketConsumer):
             }
         )
 
-        print('[',self.get_time(), '] ','[ ', self.user, ' ]', '[ny]나를 웹소켓 그룹에서 제거합니다.');
-        #[ny]채널에서 제거
+        print('[',self.get_time(), '] ','[ ', self.user, ' ]', '[ny]Will remove me from websocket group.');
+        #[ny]Remove from channel
         await self.channel_layer.group_discard(
             self.room_group_number,
             self.channel_name
@@ -129,13 +129,13 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.receive(self, text_data)
 
-        ws 통해 메세지 받으면 비동기적으로 호출되는 함수.
+        Functions that are asynchronously invoked on getting msg through ws.
 
         """
         command = json.loads(text_data)['data']['command']
-        print('[',self.get_time(), '] ','[ ', self.user, ' ]','[ny]웹소켓에 메세지가 왔습니다. [명령어] ', command)
+        print('[',self.get_time(), '] ','[ ', self.user, ' ]','[ny]Got a new msg in websocket. [Instruction] ', command)
         
-        if command == "connect" or command == "disconnect": #[ny]채널 내 모든 플레이어들에게 메세지 전송
+        if command == "connect" or command == "disconnect": #[ny]Send a msg to every players in channel
             await self.channel_layer.group_send(
                 self.room_group_number,
                 {
@@ -143,18 +143,18 @@ class RoomConsumer(AsyncWebsocketConsumer):
                     'payload': text_data,
                 }
             )
-        elif command == "userlist":                         #[ny]채널 내 전체 플레이어 리스트 확정본 및 감정을 보내줌.
+        elif command == "userlist":                         #[ny]Send a confirmed version of the full list of players in the channel and their feelings.
             
-            print('[',self.get_time(), '] ','[ ', self.user, ' ]', '[ny]DB 채널방에 접근하여 현재 입장 중인 모든 유저들을 알아오겠습니다.')
-            await database_sync_to_async(self.db_search_user)() #[ny]db에 접근해서 유저리스트 받아옴.
+            print('[',self.get_time(), '] ','[ ', self.user, ' ]', '[ny]Will access the DB channel room and get to know all the users who are currently entering.')
+            await database_sync_to_async(self.db_search_user)() #[ny]Acquire the userlist from db.
 
             self.users = json.loads(self.users)
             data = {}
             data['userlist'] = self.users
             data['command'] = 'userlist'
-            print('[',self.get_time(), '] ','[ ', self.user, ' ]', '[ny]현재 존재하는 유저들은 다음과 같습니다.', self.users)
+            print('[',self.get_time(), '] ','[ ', self.user, ' ]', '[ny]They are all of users currently .', self.users)
 
-            #[ny]자신의 브라우저로 현재 채널 내 존재하는 모든 유저 리스트를 send한다.
+            #[ny]Sending list of all users currently in the channel with the browser.
             await self.channel_layer.group_send(
                 self.room_group_number,
                 {
@@ -164,14 +164,14 @@ class RoomConsumer(AsyncWebsocketConsumer):
             )
 
 
-        elif command == "round_init":                       # [ny]이미지 할당해주고, 봇 예측 수행한다. 
+        elif command == "round_init":                       # [ny]Allocate imgs and Perform the bot expectation. 
 
             survivor_cnt = json.loads(text_data)['data']['survivor_cnt']
             self.num_of_survivor = survivor_cnt
             self.temp_emoid = json.loads(text_data)['data']['cur_emotion']
 
-            print('[',self.get_time(), '] ','[ ', self.user, ' ]', '[ny]sampling_300.csv 파일을 읽겠습니다.') 
-            '''[ny]sampling_300.csv 파일 읽기'''
+            print('[',self.get_time(), '] ','[ ', self.user, ' ]', '[ny]Will read sampling_300.csv.') 
+            '''[ny]Reading sampling_300.csv'''
             path = './static/sampling_300.csv'
             f = open(path, 'r')
             rdr = csv.reader(f)
@@ -185,12 +185,12 @@ class RoomConsumer(AsyncWebsocketConsumer):
             f.close()
             self.imgcsv = lines
             self.empties = []
-            await database_sync_to_async(self.priorities)() # [ny]완전 빈 엔트리 먼저 가져오기
+            await database_sync_to_async(self.priorities)() # [ny]Bring the totally empty entry first 
 
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ','[ny]이미지 4장을 랜덤 샘플링하겠습니다.')
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ','[ny]Will be sampling 4 imgs ramndomly.')
 
             assigned_imagesets = [[],[],[],[],[]]
-            total_imgs = [] # [ny]중복 검사를 위한 임시 list
+            total_imgs = [] # [ny]Temporary list for duplicated inspection 
 
             for i in range(0, survivor_cnt+1):
                 tmp_samples = []
@@ -199,7 +199,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
                     while e_flag!=True:
                         if len(self.empties)!= 0:
                             self.temp_imgid = random.sample(self.empties,1)[0]
-                            if self.temp_imgid in total_imgs:           # [ny]팀 내 다른 사람한테 샘플링 되었다면,
+                            if self.temp_imgid in total_imgs:           # [ny]If I got sampled by someone in the team,
                                 self.empties.remove(self.temp_imgid)
                                 lines.remove(self.temp_imgid)
                                 continue
@@ -209,12 +209,12 @@ class RoomConsumer(AsyncWebsocketConsumer):
                                 self.empties.remove(self.temp_imgid)
                                 lines.remove(self.temp_imgid)
                         else:
-                            self.temp_imgid = random.sample(lines,1)[0] # [ny]1장 샘플링
+                            self.temp_imgid = random.sample(lines,1)[0] # [ny]one img sampling
 
-                            if self.temp_imgid in total_imgs:           # [ny]팀 내 다른 사람한테 샘플링 되었다면,
+                            if self.temp_imgid in total_imgs:           # [ny]If I got sampled by someone in the team,
                                 lines.remove(self.temp_imgid)
                                 continue
-                            await database_sync_to_async(self.db_entry_enable)() #[ny]샘플링 룰 검사
+                            await database_sync_to_async(self.db_entry_enable)() #[ny]Inspect the rule of sapmling
 
                             if self.entry_enable == False:
                                 lines.remove(self.temp_imgid)
@@ -229,8 +229,8 @@ class RoomConsumer(AsyncWebsocketConsumer):
                 assigned_imagesets[i] = tmp_samples
                 print('[',self.get_time(), '] ',assigned_imagesets)
             
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]봇이 할당받은 이미지에 대해 예측을 시작하겠습니다.')
-            '''[ny]봇 예측하기'''
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]Will expect the imgs which the bot has.')
+            '''[ny]Expectation the bot'''
             bot_prediction = []
             bot_z = ct.Function.load(r'./static/bot.model')
             test_images = np.empty(shape=(1,1,64,64), dtype=np.float32)
@@ -263,11 +263,11 @@ class RoomConsumer(AsyncWebsocketConsumer):
             new_data['assigned_imagesets'] = assigned_imagesets
             new_data['bot_prediction'] = bot_prediction
 
-            packed_data = json.dumps(new_data)  #[ny]플레이어 이름과 connect 정보를 json포맷으로 묶어 저장.
+            packed_data = json.dumps(new_data)  #[ny]Save player name and connect information in json format together.
             
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ','[ny]5명이 할당받은 이미지셋과 봇의 예측값을 모두에게 전송하겠습니다.')
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]각자가 할당받은 이미지셋은, ', assigned_imagesets)
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]봇의 예측값은, ', bot_prediction)
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ','[ny]Will send allocated imgset of 5 players and predicted value of bot to everyone.')
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]The allocated imgset of individul is, ', assigned_imagesets)
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]The predicted value of bot is, ', bot_prediction)
 
             await self.channel_layer.group_send(
                 self.room_group_number,
@@ -277,8 +277,8 @@ class RoomConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-        elif command == "btn_ready":        # [ny]채널 내 모든 플레이어들에게 준비버튼 누른 유저를 알려줌.
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]내가 준비버튼을 눌렀음을 모두에게 알리겠습니다.')
+        elif command == "btn_ready":        # [ny]Inform all the players in the channel who pressed the ready button.
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]I will tell that I presssed the ready button to everyone.')
             await self.channel_layer.group_send(
                 self.room_group_number,
                 {
@@ -287,8 +287,8 @@ class RoomConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-        elif command == "btn_notready":     # [ny]채널 내 모든 플레이어들에게 준비취소버튼 누른 유저를 알려줌.
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]내가 준비취소버튼을 눌렀음을 모두에게 알리겠습니다.')
+        elif command == "btn_notready":     # [ny]Inform all the players in the channel who pressed the notready button.
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]I will tell that I pressed notready button to everyone.')
             await self.channel_layer.group_send(
                 self.room_group_number,
                 {
@@ -297,8 +297,8 @@ class RoomConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-        elif command == "btn_labeling":     # [ny]채널 내 모든 플레이어들에게 레이블링 끝난 유저를 알려줌.
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]내가 레이블링을 완료했음을 모두에게 알리겠습니다.')
+        elif command == "btn_labeling":     # [ny]Inform all the players in the channel who is done labeling.
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]I will tell that I am done labeling to everyone.')
             await self.channel_layer.group_send(
                 self.room_group_number,
                 {
@@ -307,8 +307,8 @@ class RoomConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-        elif command == "selection":        # [ny]채널 내 모든 플레이어들에게 각자 어떤 이미지를 선택했는지 알려줌. 
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]내가 한 레이블링을 모두에게 알리겠습니다.')
+        elif command == "selection":        # [ny]Inform all the players in the channel which img is picked by who. 
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]I will tell which labeling I did to everyone.')
 
             await self.channel_layer.group_send(
                 self.room_group_number,
@@ -318,7 +318,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-        elif command == "updateDB_labeling": # [ny]채널 내 플레이어들의 labeling 정보 및 image 정보를 db에 업데이트.
+        elif command == "updateDB_labeling": # [ny]Update labeling and img info of player in channel to db.
             self.all_labeling_set = json.loads(text_data)['data']['all_labeling_set']
             self.all_imageid_set = json.loads(text_data)['data']['all_imageid_set']
             self.teamid = json.loads(text_data)['data']['teamid']
@@ -327,9 +327,9 @@ class RoomConsumer(AsyncWebsocketConsumer):
             print('[',self.get_time(), '] ','all labeling set: ', self.all_labeling_set)
             print('[',self.get_time(), '] ','all imageid set: ', self.all_imageid_set)
 
-            await database_sync_to_async(self.db_update_labeling)() #[ny]db 업데이트
+            await database_sync_to_async(self.db_update_labeling)() #[ny]Update db
 
-        elif command == "updateDB_pointing": #[ny]지목 시 labeling 정보 업데이트
+        elif command == "updateDB_pointing": #[ny]Update labeling info when pointing out
             self.num_of_survivor = json.loads(text_data)['data']['survivor_cnt']
             self.cur_chosen_user = json.loads(text_data)['data']['current_chosen_user']
             self.cur_chosen_img = json.loads(text_data)['data']['current_chosen_img']
@@ -340,9 +340,9 @@ class RoomConsumer(AsyncWebsocketConsumer):
             print('[',self.get_time(), '] ','agreements: ', self.cur_agrees)
             print('[',self.get_time(), '] ','current_survivors : ', self.num_of_survivor)
 
-            await database_sync_to_async(self.db_update_pointing)() #[ny] db 업데이트
+            await database_sync_to_async(self.db_update_pointing)() #[ny]Update db
 
-        elif command == "updateDB_roundend": #[ny]한 라운드 끝날 때 blank implicit labeling 업데이트
+        elif command == "updateDB_roundend": #[ny]Update blank implicit labeling when one round is done
             self.num_of_survivor = json.loads(text_data)['data']['survivor_cnt']
             self.gameusers = json.loads(text_data)['data']['gameusers']
 
@@ -351,19 +351,19 @@ class RoomConsumer(AsyncWebsocketConsumer):
 
             await database_sync_to_async(self.db_update_roundend)()
 
-        elif command == "updateDB_roundstop": #[ny]한 라운드 끝나기 도중 게임 종료되어 blank implicit 포함된 entry 제거
+        elif command == "updateDB_roundstop": #[ny]Remove the blank implicit entry because of game over before one round is done
             self.gameusers = json.loads(text_data)['data']['gameusers']
             print('[',self.get_time(), '] ','gameusers : ', self.gameusers)
             await database_sync_to_async(self.db_delete_roundstop)()
 
-        elif command == "updateDB_userdeath": #[ny]유저가 죽었을 때 blank implicit 포함된 entry 제거
+        elif command == "updateDB_userdeath": #[ny]Remove the blank implicit entry when the user is killed by
             self.deathuser = json.loads(text_data)['data']['death_user']
             print('[',self.get_time(), '] ','deathuser : ', self.deathuser)
             await database_sync_to_async(self.db_delete_deathuser)()
 
 
-        elif command == 'arrange_anonymous_order': # [ny]채널 내 모든 플레이어들에게 익명 순서를 알려줌.
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]랜덤하게 섞은 익명 순서를 모두에게 알리겠습니다.')
+        elif command == 'arrange_anonymous_order': # [ny]Inform all the players in the channel of anonymous order.
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]Will inform the random anonymous order to everyone.')
             await self.channel_layer.group_send(
                 self.room_group_number,
                 {
@@ -372,7 +372,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
                 }
             )
         elif command == 'point':
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]내가 누군가를 봇으로 지목했음을 모두에게 알리겠습니다.')
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]Will inform that i pointed out who as a bot.')
             await self.channel_layer.group_send(
                 self.room_group_number,
                 {
@@ -381,7 +381,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
                 }
             )
         elif command == 'pass':
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]내가 봇지목을 포기하고 패스했음을 모두에게 알리겠습니다.')
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]Will inform that I gave up pointing out the bot and passed the step.')
             await self.channel_layer.group_send(
                 self.room_group_number,
                 {
@@ -391,7 +391,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
             )
         
         elif command == 'elect_result':
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]나의 투표 결과를 모두에게 알리겠습니다.')
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]Will infrom my vote to everyone.')
             await self.channel_layer.group_send(
                 self.room_group_number,
                 {
@@ -401,7 +401,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
             )
 
         elif command == 'last_mention':
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]나(혹은 봇)의 최후의 변론 증거제출을 모두에게 알리겠습니다.')
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]Will inform the evidence in last defence  of me(or bot) to everyone.')
             await self.channel_layer.group_send(
                 self.room_group_number,
                 {
@@ -413,7 +413,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
         elif command == 'history':
             self.fail_img = json.loads(text_data)['data']['fail_image']
             await database_sync_to_async(self.db_history)()            
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]나의 히스토리 세션을 모두에게 알리겠습니다.')
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]Will inform my history session to everyone.')
             
             
             data = {}
@@ -435,18 +435,18 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.user_in(self, event)
 
-        receive()에서 채널 내 모든 플레이어들에게 입장유저와 라운드별 감정 전송하는 함수.
+        In receive(), a function that sends entry users and round-by-round emotions to all players in the channel.
 
         """
         data = event['payload']
-        data = json.loads(data) #[ny]receive함수에서 전달한 json 포맷의 'payload' 데이터를 로드. 
+        data = json.loads(data) #[ny]Load 'payload' data formatted in json from receive function. 
         
         '''정보 전송하기'''
         new_data = {}
         new_data['command'] = data['data']['command']
         new_data['emotions'] = data['data']['emotions']
         new_data['username'] = data['data']['username']
-        print('[',self.get_time(), '] ','[ ', self.user, ' ]',self.user, " socket send to my browser: ", new_data['username']," [ny]님이 입장했으며, 랜덤하게 섞은 라운드별 감정은? ", new_data['emotions'])
+        print('[',self.get_time(), '] ','[ ', self.user, ' ]',self.user, " socket send to my browser: ", new_data['username']," [ny]has entered, and what is random feelings for each round? ", new_data['emotions'])
 
         await self.send(text_data=json.dumps({
             'payload':new_data,
@@ -458,30 +458,30 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.user_out(self, event)
 
-        disconnect()에서 채널 내 모든 플레이어들에게 퇴장유저 전송하는 함수.
+        In disconnect(), a function that sends exit users and to all players in the channel.
 
         """
         data = event['payload']
         data = json.loads(data)
-        who = data['username']  #[ny]누가 퇴장했는지
+        who = data['username']  #[ny] Who exited
 
         await self.send(text_data=json.dumps({
             'payload': data,
         }))
-        print('[',self.get_time(), '] ','[ ', self.user, ' ]',who, '[ny](이)가 퇴장했음을 알렸습니다.');
+        print('[',self.get_time(), '] ','[ ', self.user, ' ]',who, '[ny]informed  is exited.');
 
 
     async def init_and_predict(self, event):
         """
         [ds]RoomConsumer.init_and_predict(self, event)
 
-        최종적으로 할당된 이미지셋 id list와 봇의 예측값을 모두에게 전송하는 함수.
+        A function that sends the finally allocated imgsets id list and the predicted value of the bot to all.
 
         """ 
         data = event['payload']
         data = json.loads(data)
         #print('[',self.get_time(), '] ',"")
-        print('[',self.get_time(), '] ','[ ', self.user, ' ] ','[ny]5명이 할당받은 이미지셋 리스트와 봇의 예측값을 전송했습니다.')
+        print('[',self.get_time(), '] ','[ ', self.user, ' ] ','[ny]sent the list of imgsets assigned to 5 people and the predictions of the bot.')
 
         await self.send(text_data=json.dumps({
             'payload' : data,
@@ -493,43 +493,43 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.ready(self, event)
 
-        준비 버튼을 누가 눌렀는지 브라우저에 전송하는 함수.
+        Functions that send to the browser who pressed the Ready button.
 
         """
         data = event['payload']
-        data = json.loads(data)                     #[ny]receive함수에서 전달한 json 포맷의 'payload' 데이터를 로드. 
-        self.tempuser = data['data']['username']    #[ny]준비버튼 누른 유저
+        data = json.loads(data)                     #[ny]Load 'payload' data formatted in json from receive function.
+        self.tempuser = data['data']['username']    #[ny]A user who pressed the ready button
         print('[',self.get_time(), '] ','[ ', self.user, ' ] ', 'DB 채널방에 접근하여 ', self.tempuser,'가 준비했다고 갱신해주겠습니다.');
-        await database_sync_to_async(self.db_update_ready)()    #[ny]db에 접근해서 ready 속성 true로 변환.
+        await database_sync_to_async(self.db_update_ready)()    #[ny]Convert the ready attribute as true on db.
 
-        #[ny]ws channel을 통해 channels.js 에 메세지를 보냄.
+        #[ny]Sending msg to channels.js through ws channel.
         await self.send(text_data=json.dumps({
-            'payload': data['data'], #[ny]receive에서 전달받은 데이터를 json으로 묶어 전송.
+            'payload': data['data'], #[ny]Sending data with json format from receive function.
         }))
 
     async def notready(self, event):
         """
         [ds]RoomConsumer.ready(self, event)
 
-        준비 취소 버튼을 누가 눌렀는지 브라우저에 전송하는 함수.
+        Functions that send to the browser who pressed the NotReady button.
 
         """
         data = event['payload']
-        data = json.loads(data)     #[ny]receive함수에서 전달한 json 포맷의 'payload' 데이터를 로드. 
-        self.tempuser = data['data']['username'] #[ny]준비취소버튼 누른 유저
-        print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]DB 채널방에 접근하여 준비취소했다고 갱신해주겠습니다.');
-        await database_sync_to_async(self.db_update_notready)() #[ny]db에 접근해서 ready 속성 true로 변환.
+        data = json.loads(data)     #[ny]Load 'payload' data formatted in json from receive function.
+        self.tempuser = data['data']['username'] #[ny]User who pressed the notready button
+        print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]will approach the DB channel room and update that I canceled the ready.');
+        await database_sync_to_async(self.db_update_notready)() #[ny]Convert the ready attribute on db.
 
-        #[ny]ws channel을 통해 channels.js 에 메세지를 보냄.
+        #[ny]Sending msg to channels.js through ws channel.
         await self.send(text_data=json.dumps({
-            'payload': data['data'], #[ny]receive에서 전달받은 데이터를 json으로 묶어 전송.
+            'payload': data['data'], #[ny]Sending data with json format from receive function.
         }))
 
     async def lobby_flag(self, event):
         """
         [ds]RoomConser.lobby_flag(self, event)
 
-        로비에 사람 다 모이면 딱 한명이 시작하라고 group send 해주는 함수. 
+        It's a function that allows only one person to start when all the people gather in the lobby. 
         
         """
         data = event['payload']
@@ -543,7 +543,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.labeling(self, event)
 
-        레이블링 완료 버튼을 누가 눌렀는지 브라우저에 전송하는 함수.
+        Functions that send to the browser who pressed the labeling complete button.
 
         """
         data = event['payload']
@@ -557,7 +557,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.selection(self, event)
 
-        어떤 유저가 어떤 이미지셋을 랜덤 할당 받았고, 어떤 사진을 클릭했는지 브라우저에 전송하는 함수.
+        A function that sends a browser to which image set a user was randomly assigned and which photo was clicked.
         
         """
         data = event['payload']
@@ -572,7 +572,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.arranged_order(self, event)
         
-        memlist의 몇 번째 사람이 익명 1,2,3,4 인지를 알려주는 리스트 anonymous_user를 브라우저에 전송하는 함수.
+        A function that sends a list anonymous_user to the browser that tells which number of people in the memlist are anonymous 1,2,3,4.
 
         """
         data = event['payload']
@@ -586,8 +586,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.point(self, event)
 
-        어떤 유저가 몇 번째 익명의 어떤 사진을 클릭했는지 브라우저에 전송하는 함수.
-    
+        A function that sends who clicked which img of what number anonymous to brwoser
         """
         data = event['payload']
         data = json.loads(data)
@@ -600,7 +599,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.history(self, event)
 
-        죽은 유저의 증거에 대한 피드백을 주기 위해 전문가/대다수의 플레이어들이 추론한 표정 전송하는 함수.
+        A function that transfers facial expressions inferred by experts/most players to give feedback on the evidence of a dead user.
 
         """
         data = event['payload']
@@ -614,7 +613,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.db_history(self)
 
-        지목당한 사진에 대해 힌트가 될 감정 가져오는 함수.
+        A function that brings emotions that will be a hint about the img that has been pointed out.
 
         """
         experts_flag = False
@@ -630,7 +629,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
                 break
             
         if experts_flag == False:      
-            print("[ny]역대 누적 답안 뽑기")  
+            print("[ny]Pick all-time accumulated answers")  
             for e in e_label:
                 cur_entry = all_entries.get(emotion_id = e)
                 bunja = 0
@@ -666,11 +665,11 @@ class RoomConsumer(AsyncWebsocketConsumer):
                         bunja += (cur_bunmo - cur_bunja)
                     
                 majority.append(round(bunja/bunmo,2)*100)
-                print("*[ny]이번 감정 : ", e, " [ny]사람들의 동의율: ", majority[int(e)])
+                print("*[ny]Emotion in this round : ", e, " [ny]The rate of people's agreement: ", majority[int(e)])
             
             self.hints = majority
         
-        else:   #[ny]전문가 레이블링 보여주기
+        else:   #[ny]Show the labeling of expert
             path = './static/sampling_300.csv'
             f = open(path, 'r')
             rdr = csv.reader(f)
@@ -694,11 +693,11 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.db_add_user(self)
 
-        ws 연결 시 db에 플레이어를 등록하는 함수.
+        Function to register players in db on ws connection.
         
         """
 
-        #[ny]room_number 가 몇 번 채널인지 체크
+        #[ny]Check the room_number is what channel number
         if self.room_number == '1':
             channel_obj = Channel_1.objects
         elif self.room_number == '2':
@@ -708,11 +707,11 @@ class RoomConsumer(AsyncWebsocketConsumer):
         elif self.room_number == '4':
             channel_obj = Channel_4.objects
 
-        if not channel_obj.filter(user=self.user).exists(): #[ny]만약 유저가 db에 존재 안했었다면,
-            channel_obj.create(user=self.user)              #[ny]채널에 접속한 유저를 db에 등록한다.
-            print('[',self.get_time(), '] ','[ ', self.user, ' ]',self.user, " [ny]를 DB 채널방에 무사히 등록 완료 했습니다.")
+        if not channel_obj.filter(user=self.user).exists(): #[ny]If the user didn't exist in db,
+            channel_obj.create(user=self.user)              #[ny]Register the user who accesses the channel on the db.
+            print('[',self.get_time(), '] ','[ ', self.user, ' ]',self.user, " [ny]safely registered in the db channel room")
         else:
-            print('[',self.get_time(), '] ','[ ', self.user, ' ]',self.user, " [ny]가 이미 DB 채널방에 존재하여 DB 채널방 업데이트를 하지 않았습니다.")
+            print('[',self.get_time(), '] ','[ ', self.user, ' ]',self.user, " didn't update db channel room because [ny] already existed in db channel room.")
 
         
         
@@ -721,7 +720,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.db_remove_user(self)
 
-        ws 끊길 시 db에서 플레이어를 제거하는 함수.
+       Function to remove players in db on ws unconnection.
 
         """
         if self.room_number == '1':
@@ -733,16 +732,16 @@ class RoomConsumer(AsyncWebsocketConsumer):
         elif self.room_number == '4':
             channel_obj = Channel_4.objects
 
-        removed_user = channel_obj.get(user=self.user)  #[ny]제거할 유저를 db에서 검색한 후,
-        removed_user.delete()                           #[ny]db에서 해당 유저를 삭제한다.
-        print('[',self.get_time(), '] ','[ ', self.user, ' ]',self.user, ' [ny]를 DB 채널방에서 삭제했습니다.')
+        removed_user = channel_obj.get(user=self.user)  #[ny]After searching who will be removed on db,
+        removed_user.delete()                           #[ny]Reomove the user from db.
+        print('[',self.get_time(), '] ','[ ', self.user, ' ]',self.user, ' removed [ny] from db channel room.')
 
 
     def db_search_user(self):
         """
         [ds]RoomConsumer.db_search_user(self)
 
-        db에 접근해서 채널에 있는 모든 유저 리스트 받아오는 함수. 
+        Function to access db and get a list of all users in the channel.
 
         """
         if self.room_number == '1':
@@ -755,15 +754,15 @@ class RoomConsumer(AsyncWebsocketConsumer):
             channel_obj = Channel_4.objects
 
         self.users = list(channel_obj.values_list('user', flat=True))
-        self.users = json.dumps(self.users, ensure_ascii=False) #[ny]db에서 유저리스트 받아온다.
-        print('[',self.get_time(), '] ','[ ', self.user, ' ]', '[ny]DB 채널방에 접근하여 입장 중인 유저들을 성공적으로 검색해왔습니다.');
+        self.users = json.dumps(self.users, ensure_ascii=False) #[ny]Bring userlist from db.
+        print('[',self.get_time(), '] ','[ ', self.user, ' ]', '[ny]Successfully accessed the DB channel room and searched for users who are entering.');
 
     
     def db_update_ready(self):
         """
         [ds]RoomConsumer.db_update_ready(self)
 
-        db에 접근해서 준비 버튼을 누른 유저의 ready 속성을 true로 변환해주는 함수.
+        A function that converts the ready attribute of a user who approaches db and presses the Ready button to true.
 
         """
         if self.room_number == '1':
@@ -775,18 +774,18 @@ class RoomConsumer(AsyncWebsocketConsumer):
         elif self.room_number == '4':
             channel_obj = Channel_4.objects
 
-        change_ready = channel_obj.get(user=self.tempuser) #[ny]준비버튼을 누른 self.tempuser
+        change_ready = channel_obj.get(user=self.tempuser) #[ny]self.tempuser who pressed the ready button
         if change_ready.ready == False:
-            change_ready.ready = True   #[ny]ready속성을 true로 바꿔준 뒤
-            change_ready.save()         #[ny]db 저장
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]DB 채널방에 접근하여 ', self.tempuser, '[ny]가 준비버튼 눌렀다고 갱신하였습니다.')
+            change_ready.ready = True   #[ny]After converting the ready attribute as true
+            change_ready.save()         #[ny]Save db
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]By accessing DB channel room ', self.tempuser, 'Updated that [ny] pressed the ready button.')
 
 
     def db_update_notready(self):
         """
         [ds]RoomConsumer.db_update_notready(self)
 
-        db에 접근해서 준비취소 버튼을 누른 유저의 ready 속성을 false로 변환해주는 함수.
+        A function that converts the ready attribute of a user who approaches db and presses the NotReady button to false.
         
         """
         if self.room_number == '1':
@@ -798,23 +797,23 @@ class RoomConsumer(AsyncWebsocketConsumer):
         elif self.room_number == '4':
             channel_obj = Channel_4.objects
 
-        change_ready = channel_obj.get(user=self.tempuser)  #[ny]준비취소버튼을 누른 self.tempuser
+        change_ready = channel_obj.get(user=self.tempuser)  #[ny]self.tempuser who pressed the notready button
         if change_ready.ready == True:
-            change_ready.ready = False                      #[ny]ready속성을 false로 바꿔준 뒤
-            change_ready.save()                             #[ny]db 저장
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]DB 채널방에 접근하여 준비취소버튼 눌렀다고 갱신하였습니다.')
+            change_ready.ready = False                      #[ny]After converting ready attribute as false
+            change_ready.save()                             #[ny]Save db
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]Update it by approaching the DB channel room and pressing the notready button.')
         else:
-            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]DB 채널방에 접근했으나 이미 준비취소 상태여서 갱신하지 않았습니다.')
+            print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]approached the DB channel room, but it was alraedy canceled, so did not renew it')
 
 
     def priorities(self):
         """
         [ds]RoomConsumer.priorities(self)
 
-        db에 접근해서 entry 아무것도 안찬 이미지 뽑아오기
+        Access the db, enter and pull out a not touched image
 
         """
-        print('[',self.get_time(), '] ',' self.emoid: ', self.temp_emoid, ' [ny]entry 안찬 것 뽑아오기')
+        print('[',self.get_time(), '] ',' self.emoid: ', self.temp_emoid, ' [ny]Pick the one which is not full with entry')
         for idx in range(0,len(self.imgcsv)):
             cur_entry = Entries.objects.get(image_id=self.imgcsv[idx], emotion_id=self.temp_emoid)
             if cur_entry.E1_flag == False:
@@ -830,9 +829,9 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.db_entry_enable(self)
 
-        db에 접근해서 이미지 샘플링해도 되는지 검사하는 함수. 
-        (1) Entry 3까지 다 찼는지 검사.
-        (2) 이 팀에 한번이라도 노출된 적 있는지 검사. 
+        A function that approaches db and checks if it is acceptable to sample images.
+        (1) Check to see if Entry 3 is full.
+        (2) Check if you've ever been exposed to this team.
 
         """
         print('[',self.get_time(), '] ','self.temp_imgid: ', self.temp_imgid, ' self.emoid: ', self.temp_emoid)
@@ -841,7 +840,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
         while True:
             if cur_entry.E1_flag == True and cur_entry.E2_flag == True and cur_entry.E3_flag == True:
                 self.entry_enable = False
-                print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]Entry가 꽉찼습니다.')
+                print('[',self.get_time(), '] ','[ ', self.user, ' ] ', '[ny]Entry is full.')
 
                 break
             else:
@@ -855,7 +854,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.db_update_labeling(self)
 
-        db에 접근해서 유저들의 초기 레이블링 정보를 업데이트 하는 함수. 
+        A function that accesses db and updates users' initial labeling information.
         (1) flag = true
         (2) teamid = 
         (3) labeler = 
@@ -878,7 +877,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
                         cur_entry.E1_labeling = cur_labeling
                         cur_entry.E1_time = timezone.now()
                         cur_entry.save()
-                        print('[',self.get_time(), '] ','[labeling- ', user, ' ] ', self.all_imageid_set[user][i],'[ny]의 레이블링을 E1', self.temp_emoid, '[ny]감정에 업데이트 합니다.')
+                        print('[',self.get_time(), '] ','[labeling- ', user, ' ] ', self.all_imageid_set[user][i],'labeling of [ny] is E1', self.temp_emoid, '[ny]update on emotion.')
                         break
                     elif cur_entry.E2_flag == False:
                         cur_entry.E2_flag = True
@@ -887,7 +886,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
                         cur_entry.E2_labeling = cur_labeling
                         cur_entry.E2_time = timezone.now()
                         cur_entry.save()
-                        print('[',self.get_time(), '] ','[labeling- ', user, ' ] ', self.all_imageid_set[user][i],'[ny]의 레이블링을 E2', self.temp_emoid, '[ny]감정에 업데이트 합니다.')
+                        print('[',self.get_time(), '] ','[labeling- ', user, ' ] ', self.all_imageid_set[user][i],'labeling of [ny] is E2', self.temp_emoid, '[ny]update on emotion.')
                         break
                     elif cur_entry.E3_flag == False:
                         cur_entry.E3_flag = True
@@ -896,14 +895,14 @@ class RoomConsumer(AsyncWebsocketConsumer):
                         cur_entry.E3_labeling = cur_labeling
                         cur_entry.E3_time = timezone.now()
                         cur_entry.save()
-                        print('[',self.get_time(), '] ','[labeling- ', user, ' ] ', self.all_imageid_set[user][i],'[ny]의 레이블링을 E3', self.temp_emoid, '[ny]감정에 업데이트 합니다.')
+                        print('[',self.get_time(), '] ','[labeling- ', user, ' ] ', self.all_imageid_set[user][i],'labeling of [ny] is E3', self.temp_emoid, '[ny]update on emotion.')
                         break
 
     def db_update_pointing(self):
         """
         [ds]RoomConsumer.db_update_pointing(self)
 
-        db에 접근해서 봇 지목 시 레이블링 정보를 업데이트 하는 함수
+        A function that accesses db and updates labeling information when pointing out a bot
         (1) implicit
 
         """
@@ -912,24 +911,24 @@ class RoomConsumer(AsyncWebsocketConsumer):
         if self.cur_chosen_user != '봇':
             self.cur_agrees += 1
 
-        tmp_implicit = f'{self.cur_agrees}/{self.num_of_survivor}' # [ny]agree는 본인 레이블 포함.
+        tmp_implicit = f'{self.cur_agrees}/{self.num_of_survivor}' # [ny]agree는 inclues the lable of itself.
 
         
         while True:
             if cur_entry.E3_flag == True:
                 cur_entry.E3_implicit = tmp_implicit
                 cur_entry.save()
-                print('[',self.get_time(), '] ','[pointing- ', self.cur_chosen_user, ' ] ', self.cur_chosen_img,'[ny]가 지목당했으므로 implicit labeling을 E3', self.temp_emoid, '[ny]감정에 업데이트 합니다.')
+                print('[',self.get_time(), '] ','[pointing- ', self.cur_chosen_user, ' ] ', self.cur_chosen_img,'[ny] is pointed out therefore implicit labeling is E3', self.temp_emoid, '[ny]update on emotion.')
                 break
             elif cur_entry.E2_flag == True:
                 cur_entry.E2_implicit = tmp_implicit
                 cur_entry.save()
-                print('[',self.get_time(), '] ','[pointing- ', self.cur_chosen_user, ' ] ', self.cur_chosen_img,'[ny]가 지목당했으므로 implicit labeling을 E2', self.temp_emoid, '[ny]감정에 업데이트 합니다.')
+                print('[',self.get_time(), '] ','[pointing- ', self.cur_chosen_user, ' ] ', self.cur_chosen_img,'[ny] is pointed out therefore implicit labeling is E2', self.temp_emoid, '[ny]update on emotion.')
                 break
             elif cur_entry.E1_flag == True:
                 cur_entry.E1_implicit = tmp_implicit
                 cur_entry.save()
-                print('[',self.get_time(), '] ','[pointing- ', self.cur_chosen_user, ' ] ', self.cur_chosen_img,'[ny]가 지목당했으므로 implicit labeling을 E1', self.temp_emoid, '[ny]감정에 업데이트 합니다.')
+                print('[',self.get_time(), '] ','[pointing- ', self.cur_chosen_user, ' ] ', self.cur_chosen_img,'[ny]is pointed out therefore implicit labeling is E1', self.temp_emoid, '[ny]update on emotion.')
                 break
 
     
@@ -937,7 +936,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.db_update_roundend(self)
 
-        라운드 종료 시 db에 접근해서 빈 implicit labeling 정보를 업데이트 하는 함수 
+        A function that accesses db and updates labeling information when round is done
         (1) implicit
         """
 
@@ -953,17 +952,17 @@ class RoomConsumer(AsyncWebsocketConsumer):
                     if cur_entry.E3_flag == True and cur_entry.E3_implicit == "":
                         cur_entry.E3_implicit = tmp_implicit
                         cur_entry.save()
-                        print('[',self.get_time(), '] ','[roundend- ', user, ' ] ', cur_imgid,'[ny]는 지목된 적 없으므로 E3', self.temp_emoid, '[ny]감정에 implicit labeling을 업데이트 합니다.')
+                        print('[',self.get_time(), '] ','[roundend- ', user, ' ] ', cur_imgid,'[ny] has never been pointed out E3', self.temp_emoid, '[ny]implicit labeling is updated on emotion.')
                         break
                     elif cur_entry.E2_flag == True and cur_entry.E2_implicit == "":
                         cur_entry.E2_implicit = tmp_implicit
                         cur_entry.save()
-                        print('[',self.get_time(), '] ','[roundend- ', user, ' ] ', cur_imgid,'[ny]는 지목된 적 없으므로 E2', self.temp_emoid, '[ny]감정에 implicit labeling을 업데이트 합니다.')
+                        print('[',self.get_time(), '] ','[roundend- ', user, ' ] ', cur_imgid,'[ny] has never been pointed out E2', self.temp_emoid, '[ny]implicit labeling is updated on emotion.')
                         break
                     elif cur_entry.E1_flag == True and cur_entry.E1_implicit == "":
                         cur_entry.E1_implicit = tmp_implicit
                         cur_entry.save()
-                        print('[',self.get_time(), '] ','[roundend- ', user, ' ] ', cur_imgid,'[ny]는 지목된 적 없으므로 E1', self.temp_emoid, '[ny]감정에 implicit labeling을 업데이트 합니다.')
+                        print('[',self.get_time(), '] ','[roundend- ', user, ' ] ', cur_imgid,'[ny] has never been pointed out E1', self.temp_emoid, '[ny]implicit labeling is updated on emotion.')
                         break
                     else:
                         break
@@ -973,11 +972,11 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.db_delete_roundstop(self)
 
-        라운드 중 게임이 종료될 경우, 검수를 마치지 못한 이미지 entry 비워주는 함수
-        (1) 봇이 죽어서 게임 승리했을 경우
-        (2) 사람 2명 죽어서 게임 패배했을 경우
+        When the game ends during the round, a function that empties out an image entry that has not completed the inspection
+        (1) If the bot dies and wins the game
+        (2) If two people die and lose the game
 
-        gameusers = survivors + 봇
+        gameusers = survivors + bot
 
         """
         for user in self.gameusers:
@@ -995,7 +994,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
                         cur_entry.E3_implicit = ""
                         cur_entry.E3_time = None
                         cur_entry.save()
-                        print('[',self.get_time(), '] ','[roundstop- ', user, ' ] ', cur_imgid,'[ny]는 지목된 적 없으므로 E3', self.temp_emoid, '[ny]감정에 대한 entry 전체를 초기화합니다.')
+                        print('[',self.get_time(), '] ','[roundstop- ', user, ' ] ', cur_imgid,'[ny] has never been pointed out E3', self.temp_emoid, '[ny]Reset the whole entry related to emotion.')
                         break
                     elif cur_entry.E2_flag == True and cur_entry.E2_implicit == "":
                         cur_entry.E2_flag = False
@@ -1005,7 +1004,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
                         cur_entry.E2_implicit = ""
                         cur_entry.E2_time = None
                         cur_entry.save()
-                        print('[',self.get_time(), '] ','[roundstop- ', user, ' ] ', cur_imgid,'[ny]는 지목된 적 없으므로 E2', self.temp_emoid, '[ny]감정에 대한 entry 전체를 초기화합니다.')
+                        print('[',self.get_time(), '] ','[roundstop- ', user, ' ] ', cur_imgid,'[ny] has never been pointed out E2', self.temp_emoid, '[ny]Reset the whole entry related to emotion.')
                         break
                     elif cur_entry.E1_flag == True and cur_entry.E1_implicit == "":
                         cur_entry.E1_flag = False
@@ -1015,7 +1014,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
                         cur_entry.E1_implicit = ""
                         cur_entry.E1_time = None
                         cur_entry.save()
-                        print('[',self.get_time(), '] ','[roundstop- ', user, ' ] ', cur_imgid,'[ny]는 지목된 적 없으므로 E1', self.temp_emoid, '[ny]감정에 대한 entry 전체를 초기화합니다.')
+                        print('[',self.get_time(), '] ','[roundstop- ', user, ' ] ', cur_imgid,'[ny] has never been pointed out E1', self.temp_emoid, '[ny]Reset the whole entry related to emotion.')
                         break
                     else:
                         break
@@ -1026,8 +1025,8 @@ class RoomConsumer(AsyncWebsocketConsumer):
         """
         [ds]RoomConsumer.db_delete_deathuser(self)
 
-        라운드 중 사람이 죽어서, 그 유저의 검수를 마치지 못한 이미지 entry 비워주는 함수
-        (1) 사람이 죽을 경우 (no mention / fail mention)
+        When human dies during the round, a function that empties out an image entry that has not completed the inspection about the user
+        (1) If human dies (no mention / fail mention)
 
         """
         for i in range(0,4):
@@ -1042,7 +1041,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
                     cur_entry.E3_implicit = ""
                     cur_entry.E3_time = None
                     cur_entry.save()
-                    print('[',self.get_time(), '] ','[deathuser- ', self.deathuser, ' ] ', cur_imgid,'[ny]는 지목된 적 없으므로 E3', self.temp_emoid, '[ny]감정에 대한 entry 전체를 초기화합니다.')
+                    print('[',self.get_time(), '] ','[deathuser- ', self.deathuser, ' ] ', cur_imgid,'[ny] has never been pointed out E3', self.temp_emoid, '[ny]Reset the whole entry related to emotion.')
                     break
                 elif cur_entry.E2_flag == True and cur_entry.E2_implicit == "":
                     cur_entry.E2_flag = False
@@ -1052,7 +1051,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
                     cur_entry.E2_implicit = ""
                     cur_entry.E2_time = None
                     cur_entry.save()
-                    print('[',self.get_time(), '] ','[deathuser- ', self.deathuser, ' ] ', cur_imgid,'[ny]는 지목된 적 없으므로 E2', self.temp_emoid, '[ny]감정에 대한 entry 전체를 초기화합니다.')
+                    print('[',self.get_time(), '] ','[deathuser- ', self.deathuser, ' ] ', cur_imgid,'[ny] has never been pointed out E2', self.temp_emoid, '[ny]Reset the whole entry related to emotion.')
                     break
                 elif cur_entry.E1_flag == True and cur_entry.E1_implicit == "":
                     cur_entry.E1_flag = False
@@ -1062,14 +1061,14 @@ class RoomConsumer(AsyncWebsocketConsumer):
                     cur_entry.E1_implicit = ""
                     cur_entry.E1_time = None
                     cur_entry.save()
-                    print('[',self.get_time(), '] ','[deathuser- ', self.deathuser, ' ] ', cur_imgid,'[ny]는 지목된 적 없으므로 E1', self.temp_emoid, '[ny]감정에 대한 entry 전체를 초기화합니다.')
+                    print('[',self.get_time(), '] ','[deathuser- ', self.deathuser, ' ] ', cur_imgid,'[ny] has never been pointed out E1', self.temp_emoid, '[ny]Reset the whole entry related to emotion.')
                     break
                 else:
                     break
 
     def get_time(self):
         """
-        [ds]timestamp 출력을 위해 작성한 함수. 
+        [ds]A fuction that is written to print out timestamp. 
         """
         self.now = datetime.now()
         self.timestamp = self.now.strftime("%Y-%m-%d %H:%M:%S")

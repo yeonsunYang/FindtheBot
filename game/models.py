@@ -1,18 +1,18 @@
 from django.db import models
 
 class Member(models.Model):
-    '''[ds]Table 설명
-        sql에서 만든 table
+    '''[ds]Table description
+        table made from sql
 
     Attribites:
-        models.Model : Model로 설명되는 데이터
-        Member : table 이름
+        models.Model : data explained by Model
+        Member : name of table 
 
     Paramater:
         mem_id : id
         mem_name : user name
-        mem_point : user의 point
-        mem_exp: user의 exp
+        mem_point : points of user
+        mem_exp: exp of user
     '''
     mem_id = models.CharField(primary_key=True, max_length=8)
     team_id = models.CharField(max_length=8, null=True)
@@ -32,11 +32,11 @@ class Channel_1(models.Model):
     '''
     [ds]Channel_1 table
     
-    채널 1에 실시간 접속 중인 플레이어들을 저장한 테이블
+    A table that stores accessing players in channel 1 at that time
 
     Paramater:
-        user : 접속 중인 플레이어의 username
-        ready : 접속 중인 플레이어가 준비 중인지 아닌지 체크하는  flag
+        user : accessing player's username
+        ready : flag to check if the accessing player is ready or not
 
     '''
     user = models.CharField(max_length=15, null=True)
@@ -51,11 +51,11 @@ class Channel_2(models.Model):
     '''
     [ds]Channel_2 table
     
-    채널 2에 실시간 접속 중인 플레이어들을 저장한 테이블
+    A table that stores accessing players in channel 2 at that time
 
     Paramater:
-        user : 접속 중인 플레이어의 username
-        ready : 접속 중인 플레이어가 준비 중인지 아닌지 체크하는  flag
+        user : accessing player's username
+        ready : flag to check if the accessing player is ready or not
 
 
     '''
@@ -72,11 +72,11 @@ class Channel_3(models.Model):
     '''
     [ds]Channel_3 table
     
-    채널 3에 실시간 접속 중인 플레이어들을 저장한 테이블
+    A table that stores accessing players in channel 3 at that time
 
     Paramater:
-        user : 접속 중인 플레이어의 username
-        ready : 접속 중인 플레이어가 준비 중인지 아닌지 체크하는  flag
+        user : accessing player's username
+        ready : flag to check if the accessing player is ready or not
 
 
     '''
@@ -93,11 +93,11 @@ class Channel_4(models.Model):
     '''
     [ds]Channel_4 table
     
-    채널 4에 실시간 접속 중인 플레이어들을 저장한 테이블
+    A table that stores accessing players in channel 4 at that time
 
     Paramater:
-        user : 접속 중인 플레이어의 username
-        ready : 접속 중인 플레이어가 준비 중인지 아닌지 체크하는  flag
+        user : accessing player's username
+        ready : flag to check if the accessing player is ready or not
 
 
     '''
