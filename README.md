@@ -197,6 +197,6 @@ Code derived and rehashed from:
 
 <h2>📞 Contact</h2>
 
-If you have any questions or would like to hear more about this project, please feel free to shoot us an eamil at: [diddustjs98@dgist.ac.kr](mailto:diddustjs98@dgist.ac.kr) or [ahyeon@dgist.ac.kr](mailto:ahyeon@dgist.ac.kr)!
+If you have any questions or would like to hear more about this project, please feel free to shoot us an eamil at: [diddustjs98@dgist.ac.kr](mailto:diddustjs98@dgist.ac.kr) or [ahyeon@dgist.ac.kr](mailto:ahyeon@dgist.ac.kr) !
 
 ! !!
