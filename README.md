@@ -198,3 +198,15 @@ Code derived and rehashed from:
 <h2>📞 Contact</h2>
 
 If you have any questions or would like to hear more about this project, please feel free to shoot us an eamil at: [diddustjs98@dgist.ac.kr](mailto:diddustjs98@dgist.ac.kr) or [ahyeon@dgist.ac.kr](mailto:ahyeon@dgist.ac.kr) !
+
+<br><br><br><hr>
+<p align="left">
+  <a href="https://eecs.dgist.ac.kr/eng/index.php#Home">
+    <img src="https://github.com/yeonsunYang/FindtheBot/blob/main/DGIST_EECS.png?raw=true" alt="DGIST EECS logo" width="130"/>
+  </a>
+   <span>&nbsp;&nbsp;</span>
+  <a href="https://diag.kr/">
+    <img src="https://github.com/yeonsunYang/FindtheBot/blob/main/DIAG.png?raw=true" alt="DIAG LAB logo" width="130"/>
+  </a>
+</p>
+
